@@ -3,10 +3,8 @@ plugins {
     id 'java-library'
 }
 
-repositories {
-    // Use jcenter for resolving dependencies.
-    // You can declare any Maven/Ivy/file repository here.
-    jcenter()
+sourceSets {
+    main.java.srcDirs = ['src']
 }
 
 dependencies {

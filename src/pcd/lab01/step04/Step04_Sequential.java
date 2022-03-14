@@ -1,6 +1,6 @@
 package pcd.lab01.step04;
 
-public class Steo04_Sequential {
+public class Step04_Sequential {
 
 	public static void main(String[] args) throws Exception {
 		

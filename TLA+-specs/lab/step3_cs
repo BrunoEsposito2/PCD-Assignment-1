@@ -1,0 +1,35 @@
+------------------------------ MODULE step3_cs ------------------------------
+
+EXTENDS Integers, Sequences, TLC
+
+(*--algorithm critical_section
+
+variables s = 1, sem = 1;
+  
+define
+    MutualExclusion == []~(pc["p1"] = "CS" /\ pc["p2"] = "CS")
+end define;
+    
+macro wait(s) begin
+  await s > 0;  
+  s := s - 1;
+end macro;
+
+macro signal(s) begin
+  s := s + 1;
+end macro;
+
+
+process proc \in {"p1", "p2"}
+begin MainLoop:
+  while TRUE do
+    NCS: skip;
+    \* await s > 0;  
+    \* s := s - 1;
+    CS: skip;
+    \* s := s + 1;                    
+  end while;
+end process;
+
+
+end algorithm;*)

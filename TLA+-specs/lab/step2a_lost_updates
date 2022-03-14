@@ -1,0 +1,32 @@
+-------------------------------- MODULE step2_lost_updates --------------------------------
+
+EXTENDS TLC, Integers
+(*--algorithm lost_update  
+variables 
+    c = 0;
+
+define 
+    ProperFinalValue == <>(c = 2)
+end define;
+
+fair process p = "p"
+variables temp = 0;
+begin
+P1: 
+  temp := c;
+P2:
+  c := temp + 1; 
+end process;
+
+fair process q = "q"
+variables temp = 0;
+begin  
+Q1: 
+  temp := c;
+Q2:
+  c := temp + 1;
+end process;
+
+end algorithm;*) 
+
+=============================================================================

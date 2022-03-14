@@ -1,4 +1,4 @@
-target = pcd.lab02.jpf.TestLostUpdate
+target = pcd.lab03.liveness.jpf.TestDeadlockedResource
 
 classpath=bin/main
 

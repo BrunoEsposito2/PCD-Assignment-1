@@ -2,7 +2,7 @@ package pcd.lab01.step04;
 
 import pcd.lab01.step04.*;
 
-public class Steo04_Parallel {
+public class Step04_Parallel {
 
 	public static void main(String[] args) throws Exception {
 		int size = 1000;

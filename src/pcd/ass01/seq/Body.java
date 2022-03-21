@@ -123,13 +123,16 @@ public class Body {
     public void checkAndSolveBoundaryCollision(Boundary bounds){
     	double x = pos.getX();
     	double y = pos.getY();    	
-        if (x > bounds.getX1()){
+        
+    	if (x > bounds.getX1()){
             pos.change(bounds.getX1(), pos.getY());
             vel.change(-vel.getX(), vel.getY());
         } else if (x < bounds.getX0()){
             pos.change(bounds.getX0(), pos.getY());
             vel.change(-vel.getX(), vel.getY());
-        } else if (y > bounds.getY1()){
+        } 
+        
+        if (y > bounds.getY1()){
             pos.change(pos.getX(), bounds.getY1());
             vel.change(vel.getX(), -vel.getY());
         } else if (y < bounds.getY0()){

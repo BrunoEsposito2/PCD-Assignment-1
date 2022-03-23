@@ -1,7 +1,0 @@
-target = pcd.lab03.liveness.jpf.TestDeadlockedResource
-
-classpath=bin/main
-
-listener=gov.nasa.jpf.listener.PreciseRaceDetector
-
-report.console.property_violation=error,trace

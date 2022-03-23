@@ -7,8 +7,7 @@ sourceSets {
     main.java.srcDirs = ['src']
 }
 
-dependencies {
-
-    // Use JUnit test framework
-    testImplementation 'junit:junit:4.12'
+repositories {
+    maven { url 'http://repo1.maven.org/maven2' }
+    jcenter { url "http://jcenter.bintray.com/" }
 }

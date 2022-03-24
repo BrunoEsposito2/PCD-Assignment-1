@@ -14,8 +14,8 @@ class Consumer extends Thread {
 	private Monitor<Body> buffer;
 	
 	
-	public Consumer(Monitor<Body> buffer, double dt, Boundary bounds){
-		this.buffer = buffer;
+	public Consumer(Monitor<Body> monitor, double dt, Boundary bounds){
+		this.buffer = monitor;
 		this.dt = dt;
 		this.bounds = bounds;
 	}

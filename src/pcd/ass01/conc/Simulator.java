@@ -10,12 +10,12 @@ import pcd.ass01.seq.V2d;
 
 public class Simulator {
 
-        
+
 	private SimulationView viewer;
 
 	/* bodies in the field */
 	ArrayList<Body> bodies;
-	
+
 	private Monitor<Body> monitor;
 	private BarrierMonitor bar;
 
@@ -27,7 +27,7 @@ public class Simulator {
 
 	/* virtual time step */
 	double dt;
-	
+
 	private Producer p1, p2;
 	private Consumer c;
 
@@ -43,7 +43,7 @@ public class Simulator {
 		monitor = new Monitor<>(bodies.size());
 		bar = new BarrierMonitor(bodies.size());
 	}
-	
+
 	public void execute(long nSteps) throws InterruptedException {
 
 		/* init virtual time */
@@ -56,19 +56,19 @@ public class Simulator {
 		//initialize consumer out of the loop: it will remain alive the whole time
 		c = new Consumer(monitor, dt, bounds);
 		c.start();
-                
+
 		/* simulation loop */
 		while (iter < nSteps) {
-			
-			
+
+
 			//initialize Producers inside loop
 			p1 = new Producer(monitor, bodies.subList(0, 1), Collections.unmodifiableList(bodies), dt, bar);
 			p2 = new Producer(monitor, bodies.subList(1, 2), Collections.unmodifiableList(bodies), dt, bar);
-		       
+
 			//run producers
 			p1.start();
 			p2.start();
-		        
+
 			/* update virtual time */
 			vt = vt + dt;
 			iter++;
@@ -100,7 +100,7 @@ public class Simulator {
 
 		return totalForce;
 	}
-	
+
 	private void testBodySet1_two_bodies() {
 		bounds = new Boundary(-4.0, -4.0, 4.0, 4.0);
 		bodies = new ArrayList<Body>();
@@ -141,7 +141,7 @@ public class Simulator {
 			bodies.add(b);
 		}
 	}
-	
-	
+
+
 
 }

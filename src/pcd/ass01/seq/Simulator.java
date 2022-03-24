@@ -11,6 +11,7 @@ public class Simulator {
 	ArrayList<Body> bodies;
 	
 	private Monitor<Body> monitor;
+	private BarrierMonitor bar;
 
 	/* boundary of the field */
 	private Boundary bounds;
@@ -47,10 +48,10 @@ public class Simulator {
 		
 		/* initializing boundary and bodies */
 
-		 //testBodySet1_two_bodies();
+		testBodySet1_two_bodies();
 		// testBodySet2_three_bodies();
 		// testBodySet3_some_bodies();
-		testBodySet4_many_bodies();
+		// testBodySet4_many_bodies();
 		
 		this.nrProcessors = Runtime.getRuntime().availableProcessors()+1;
 		this.nrProd =  nrProcessors >= bodies.size() ? 
@@ -60,6 +61,7 @@ public class Simulator {
 		this.deltaSplitList = (int) Math.ceil((float) (bodies.size() / nrProd));
 		this.restSplitList = bodies.size() % nrProd;
 		this.monitor = new Monitor<>(bodies.size());
+		this.bar = new BarrierMonitor(bodies.size());
 		
 		//initialize consumers: they will remain alive the whole time
 		this.initialize_consumers();
@@ -135,7 +137,8 @@ public class Simulator {
 			Producer p = new Producer(this.monitor, 
 									  this.bodies.subList(fromIndex, toIndex), 
 									  Collections.unmodifiableList(this.bodies), 
-									  this.dt);
+									  this.dt,
+									  this.bar);
 			p.start();
 			this.producers.add(p);
 		}

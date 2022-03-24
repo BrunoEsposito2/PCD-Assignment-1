@@ -12,14 +12,17 @@ public class Producer extends Thread {
     //the buffer of the monitor (initialized at bodies.size)
     private Monitor<Body> buffer;
     
+    private BarrierMonitor bar;
+    
     
     private double dt;
     
-    public Producer(Monitor<Body> buffer, List<Body> toProduce,  List<Body> bodies, double dt){
+    public Producer(Monitor<Body> buffer, List<Body> toProduce,  List<Body> bodies, double dt, BarrierMonitor bar){
             this.buffer = buffer;
             this.toProduce = toProduce;
             this.bodies = bodies;
             this.dt = dt;
+            this.bar = bar;
     }
 
     public void run(){
@@ -29,6 +32,7 @@ public class Producer extends Thread {
                     b = produce(b);
                     try {
                             buffer.put(b);
+                            bar.hitAndWaitAll();
                     } catch(InterruptedException ex){
                             ex.printStackTrace();
                     }

@@ -4,10 +4,13 @@ import java.util.*;
 
 public class Simulator {
 
+        
 	private SimulationView viewer;
 
 	/* bodies in the field */
 	ArrayList<Body> bodies;
+	
+	private Monitor<Body> monitor;
 
 	/* boundary of the field */
 	private Boundary bounds;
@@ -17,16 +20,20 @@ public class Simulator {
 
 	/* virtual time step */
 	double dt;
+	
+	private Producer p1, p2;
+	private Consumer c;
 
 	public Simulator(SimulationView viewer) {
 		this.viewer = viewer;
 
 		/* initializing boundary and bodies */
 
-		// testBodySet1_two_bodies();
+		 testBodySet1_two_bodies();
 		// testBodySet2_three_bodies();
 		// testBodySet3_some_bodies();
-		testBodySet4_many_bodies();
+		//testBodySet4_many_bodies();
+		monitor = new Monitor<>(bodies.size());
 	}
 	
 	public void execute(long nSteps) {
@@ -38,44 +45,31 @@ public class Simulator {
 
 		long iter = 0;
 
+		//initialize consumer out of the loop: it will remain alive the whole time
+		c = new Consumer(monitor, dt, bounds);
+                c.start();
+                
 		/* simulation loop */
-
 		while (iter < nSteps) {
-
-			/* update bodies velocity */
-
-			for (int i = 0; i < bodies.size(); i++) {
-				Body b = bodies.get(i);
-
-				/* compute total force on bodies */
-				V2d totalForce = computeTotalForceOnBody(b);
-
-				/* compute instant acceleration */
-				V2d acc = new V2d(totalForce).scalarMul(1.0 / b.getMass());
-
-				/* update velocity */
-				b.updateVelocity(acc, dt);
-			}
-
-			/* compute bodies new pos */
-
-			for (Body b : bodies) {
-				b.updatePos(dt);
-			}
-
-			/* check collisions with boundaries */
-
-			for (Body b : bodies) {
-				b.checkAndSolveBoundaryCollision(bounds);
-			}
-
-			/* update virtual time */
-
+		    
+		        //initialize Producers inside loop
+		        p1 = new Producer(monitor, bodies.subList(0,1), Collections.unmodifiableList(bodies), dt);
+		        p2 = new Producer(monitor, bodies.subList(1,2), Collections.unmodifiableList(bodies), dt);
+		       
+		        //run producers
+		        p1.start();
+		        p2.start();
+		        
+		        
+		        //TODO implement barrier.
+		        
+		        
+		        
+		        /* update virtual time */
 			vt = vt + dt;
 			iter++;
 
 			/* display current stage */
-
 			viewer.display(bodies, vt, iter, bounds);
 
 		}

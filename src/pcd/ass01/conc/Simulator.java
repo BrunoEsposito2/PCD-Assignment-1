@@ -69,11 +69,13 @@ public class Simulator {
 		
 		this.deltaSplitList = (int) Math.ceil((float) (bodies.size() / nrProd));
 		this.restSplitList = bodies.size() % nrProd;
-		this.monitor = new Monitor<>(bodies.size(), nrCons + 1);
+		this.monitor = new Monitor<>(bodies.size(), nrCons, bodies);
+		this.consumers = new ArrayList<>();
+		this.producers = new ArrayList<>();
 		
 		//initialize consumers: they will remain alive the whole time
+		this.initialize_producers();	
 		this.initialize_consumers();
-
 	}
 	
 	public void execute(long nSteps) {
@@ -84,13 +86,11 @@ public class Simulator {
 		/* simulation loop */
 		while (iter < nSteps) {
 		    
-			//initialize Producers inside loop
-			initialize_producers();	
-			
-		    try {
-				this.monitor.hitAndWaitAll();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			try {
+				monitor.startAndWaitWorkers(Collections.unmodifiableList(this.bodies));
+				
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
 			}
 		        
 		    /* update virtual time */
@@ -106,8 +106,6 @@ public class Simulator {
 	private void initialize_consumers() {
 		
 		System.out.println(nrProcessors + " " + nrProd + " " + nrCons);
-		consumers = new ArrayList<>();
-		producers = new ArrayList<>();
 		for(int i = 0; i < this.nrCons; i++) {
 		    Consumer c = new Consumer(monitor, dt, bounds);
 			c.start();
@@ -117,16 +115,16 @@ public class Simulator {
 	
 	private void initialize_producers() {
 		int fromIndex, toIndex;
-		this.producers.clear();
         
 		for(int i = 0; i<nrProd; i++) {
 			fromIndex = i * deltaSplitList;
 			toIndex = (i + 1) * deltaSplitList + (i == nrProd-1 ? restSplitList : 0);
 			
-			Producer p = new Producer(this.monitor, 
-									  this.bodies.subList(fromIndex, toIndex), 
-									  Collections.unmodifiableList(this.bodies), 
-									  this.dt);
+			Producer p = new Producer(this.monitor,
+									  Collections.unmodifiableList(this.bodies),
+									  this.dt,
+									  fromIndex,
+									  toIndex);
 			p.start();
 			this.producers.add(p);
 		}

@@ -26,6 +26,7 @@ class Consumer extends Thread {
 			try {
 				Body item = monitor.get();
 				consume(item);
+				System.out.println("i have consumed an element!");
 			} catch (InterruptedException ex){
 				ex.printStackTrace();
 			}

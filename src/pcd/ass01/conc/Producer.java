@@ -18,23 +18,35 @@ public class Producer extends Thread {
     
     private double dt;
     
-    public Producer(IMonitor<Body> monitor, List<Body> toProduce,  List<Body> bodies, double dt){
+    private final int from, to;
+    
+    public Producer(IMonitor<Body> monitor,  List<Body> bodies, double dt, int f, int t){
             this.monitor = monitor;
-            this.toProduce = toProduce;
             this.bodies = bodies;
             this.dt = dt;
+            this.from = f;
+            this.to = t;
     }
 
     public void run(){
-    	//for each body in toProduce put in the monitor's buffer the updated body
-        for(Body b:toProduce){
-        	b = produce(b);
-            try {
-            	monitor.put(b);
-            } catch(InterruptedException ex){
-            	ex.printStackTrace();
-            }
-        }
+	    while(true) {
+	    	try {
+				this.monitor.waitMaster();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+	    	this.toProduce = monitor.getWorkerSublist(this.from, this.to);
+	    	
+    		//for each body in toProduce put in the monitor's buffer the updated body
+	        for(Body b:toProduce){
+	        	b = produce(b);
+	            try {
+	            	monitor.put(b);
+	            } catch(InterruptedException ex){
+	            	ex.printStackTrace();
+	            }
+	        }
+	    }
     }
     
     private Body produce(Body b){

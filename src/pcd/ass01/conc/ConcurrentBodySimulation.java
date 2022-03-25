@@ -1,6 +1,6 @@
 package pcd.ass01.conc;
 
-import pcd.ass01.seq.SimulationView;
+import pcd.ass01.utils.SimulationView;
 
 /**
  * Bodies simulation - legacy code: concurrent

@@ -2,16 +2,18 @@ package pcd.ass01.seq;
 
 import java.util.*;
 
+import pcd.ass01.utils.Body;
+import pcd.ass01.utils.Boundary;
+import pcd.ass01.utils.P2d;
+import pcd.ass01.utils.SimulationView;
+import pcd.ass01.utils.V2d;
+
 public class Simulator {
 
-        
 	private SimulationView viewer;
 
 	/* bodies in the field */
 	ArrayList<Body> bodies;
-	
-	private Monitor<Body> monitor;
-	private BarrierMonitor bar;
 
 	/* boundary of the field */
 	private Boundary bounds;
@@ -21,70 +23,65 @@ public class Simulator {
 
 	/* virtual time step */
 	double dt;
-	
-	/* number of producers in producers-consumers pattern*/
-	private final int nrProd;
-	
-	/* number of total process available*/
-	private final int nrProcessors;
-	
-	/* size of the sublists given the number of producers */
-	private final int deltaSplitList;
-	
-	/* number of elements to assign to the last producer (equals to nrProcessors % size total list)*/
-	private final int restSplitList;
-	
-	/*Lists of producers and consumers*/
-	private ArrayList<Consumer> consumers;
-	private ArrayList<Producer> producers;
 
 	public Simulator(SimulationView viewer) {
 		this.viewer = viewer;
-		
-		/* init virtual time */
-		this.dt = 0.001;
-		this.vt = 0;
-		
-		
+
 		/* initializing boundary and bodies */
 
-		testBodySet1_two_bodies();
+		// testBodySet1_two_bodies();
 		// testBodySet2_three_bodies();
 		// testBodySet3_some_bodies();
-		// testBodySet4_many_bodies();
-		
-		this.nrProcessors = Runtime.getRuntime().availableProcessors()+1;
-		this.nrProd =  nrProcessors >= bodies.size() ? 
-					   bodies.size() : 
-					   (int)((6.0/10.0)*(nrProcessors)); //TODO remove magic number
-		
-		this.deltaSplitList = (int) Math.ceil((float) (bodies.size() / nrProd));
-		this.restSplitList = bodies.size() % nrProd;
-		this.monitor = new Monitor<>(bodies.size());
-		this.bar = new BarrierMonitor(bodies.size());
-		
-		//initialize consumers: they will remain alive the whole time
-		this.initialize_consumers();
+		testBodySet4_many_bodies();
 	}
 	
 	public void execute(long nSteps) {
 
+		/* init virtual time */
+
+		vt = 0;
+		dt = 0.001;
+
 		long iter = 0;
-		
-		
+
 		/* simulation loop */
+
 		while (iter < nSteps) {
-		    
-			//initialize Producers inside loop
-			initialize_producers();	
-			
-		    //TODO implement barrier.
-		        
-		    /* update virtual time */
+
+			/* update bodies velocity */
+
+			for (int i = 0; i < bodies.size(); i++) {
+				Body b = bodies.get(i);
+
+				/* compute total force on bodies */
+				V2d totalForce = computeTotalForceOnBody(b);
+
+				/* compute instant acceleration */
+				V2d acc = new V2d(totalForce).scalarMul(1.0 / b.getMass());
+
+				/* update velocity */
+				b.updateVelocity(acc, dt);
+			}
+
+			/* compute bodies new pos */
+
+			for (Body b : bodies) {
+				b.updatePos(dt);
+			}
+
+			/* check collisions with boundaries */
+
+			for (Body b : bodies) {
+				b.checkAndSolveBoundaryCollision(bounds);
+			}
+
+			/* update virtual time */
+
 			vt = vt + dt;
 			iter++;
 
 			/* display current stage */
+
 			viewer.display(bodies, vt, iter, bounds);
 
 		}
@@ -111,37 +108,6 @@ public class Simulator {
 		totalForce.sum(b.getCurrentFrictionForce());
 
 		return totalForce;
-	}
-	
-	private void initialize_consumers() {
-		final int nrCons = nrProcessors - nrProd;
-		
-		//System.out.println(nrProcessors + " " + nrProd + " " + nrCons);
-		consumers = new ArrayList<>();
-		producers = new ArrayList<>();
-		for(int i = 0; i < nrCons; i++) {
-		    Consumer c = new Consumer(monitor, dt, bounds);
-			c.start();
-			this.consumers.add(c);
-		}
-	}
-	
-	private void initialize_producers() {
-		int fromIndex, toIndex;
-		this.producers.clear();
-        
-		for(int i = 0; i<nrProd; i++) {
-			fromIndex = i * deltaSplitList;
-			toIndex = (i + 1) * deltaSplitList + (i == nrProd-1 ? restSplitList : 0);
-			
-			Producer p = new Producer(this.monitor, 
-									  this.bodies.subList(fromIndex, toIndex), 
-									  Collections.unmodifiableList(this.bodies), 
-									  this.dt,
-									  this.bar);
-			p.start();
-			this.producers.add(p);
-		}
 	}
 	
 	private void testBodySet1_two_bodies() {

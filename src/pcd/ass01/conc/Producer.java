@@ -2,8 +2,8 @@ package pcd.ass01.conc;
 
 import java.util.*;
 
-import pcd.ass01.seq.Body;
-import pcd.ass01.seq.V2d;
+import pcd.ass01.utils.Body;
+import pcd.ass01.utils.V2d;
 
 public class Producer extends Thread {
 

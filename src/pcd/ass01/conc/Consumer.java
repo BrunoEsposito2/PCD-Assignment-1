@@ -1,7 +1,7 @@
 package pcd.ass01.conc;
 
-import pcd.ass01.seq.Body;
-import pcd.ass01.seq.Boundary;
+import pcd.ass01.utils.Body;
+import pcd.ass01.utils.Boundary;
 
 class Consumer extends Thread {
 

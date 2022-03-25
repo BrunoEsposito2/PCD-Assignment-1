@@ -6,4 +6,6 @@ public interface IMonitor<Item> {
     
     Item get() throws InterruptedException;
     
+    void hitAndWaitAll() throws InterruptedException; 
+    
 }

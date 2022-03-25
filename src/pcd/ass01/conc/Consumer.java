@@ -11,11 +11,11 @@ class Consumer extends Thread {
     /* boundary of the field */
     private Boundary bounds;
         
-	private Monitor<Body> buffer;
+	private IMonitor<Body> monitor;
 	
 	
-	public Consumer(Monitor<Body> monitor, double dt, Boundary bounds){
-		this.buffer = monitor;
+	public Consumer(IMonitor<Body> monitor, double dt, Boundary bounds){
+		this.monitor = monitor;
 		this.dt = dt;
 		this.bounds = bounds;
 	}
@@ -24,12 +24,12 @@ class Consumer extends Thread {
 	    //loop forever in search to produced items in the monitor's buffer to "consume" (AKA to update pos and check collision)
 		while (true){
 			try {
-				Body item = buffer.get();
+				Body item = monitor.get();
 				consume(item);
-				//bar.await();
 			} catch (InterruptedException ex){
 				ex.printStackTrace();
 			}
+			
 		}
 	}
 	

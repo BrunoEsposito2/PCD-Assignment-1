@@ -17,7 +17,6 @@ public class Simulator {
 	ArrayList<Body> bodies;
 	
 	private Monitor<Body> monitor;
-	private BarrierMonitor bar;
 
 	/* boundary of the field */
 	private Boundary bounds;
@@ -30,6 +29,8 @@ public class Simulator {
 	
 	/* number of producers in producers-consumers pattern*/
 	private final int nrProd;
+	
+	private final int nrCons;
 	
 	/* number of total process available*/
 	private final int nrProcessors;
@@ -64,13 +65,15 @@ public class Simulator {
 					   bodies.size() : 
 					   (int)((6.0/10.0)*(nrProcessors)); //TODO remove magic number
 		
+		this.nrCons = this.nrProcessors - this.nrProd;
+		
 		this.deltaSplitList = (int) Math.ceil((float) (bodies.size() / nrProd));
 		this.restSplitList = bodies.size() % nrProd;
-		this.monitor = new Monitor<>(bodies.size());
-		this.bar = new BarrierMonitor(bodies.size());
+		this.monitor = new Monitor<>(bodies.size(), nrCons + 1);
 		
 		//initialize consumers: they will remain alive the whole time
 		this.initialize_consumers();
+
 	}
 	
 	public void execute(long nSteps) {
@@ -84,7 +87,11 @@ public class Simulator {
 			//initialize Producers inside loop
 			initialize_producers();	
 			
-		    //TODO implement barrier.
+		    try {
+				this.monitor.hitAndWaitAll();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		        
 		    /* update virtual time */
 			vt = vt + dt;
@@ -95,37 +102,13 @@ public class Simulator {
 
 		}
 	}
-
-	private V2d computeTotalForceOnBody(Body b) {
-
-		V2d totalForce = new V2d(0, 0);
-
-		/* compute total repulsive force */
-
-		for (int j = 0; j < bodies.size(); j++) {
-			Body otherBody = bodies.get(j);
-			if (!b.equals(otherBody)) {
-				try {
-					V2d forceByOtherBody = b.computeRepulsiveForceBy(otherBody);
-					totalForce.sum(forceByOtherBody);
-				} catch (Exception ex) {
-				}
-			}
-		}
-
-		/* add friction force */
-		totalForce.sum(b.getCurrentFrictionForce());
-
-		return totalForce;
-	}
 	
 	private void initialize_consumers() {
-		final int nrCons = nrProcessors - nrProd;
 		
-		//System.out.println(nrProcessors + " " + nrProd + " " + nrCons);
+		System.out.println(nrProcessors + " " + nrProd + " " + nrCons);
 		consumers = new ArrayList<>();
 		producers = new ArrayList<>();
-		for(int i = 0; i < nrCons; i++) {
+		for(int i = 0; i < this.nrCons; i++) {
 		    Consumer c = new Consumer(monitor, dt, bounds);
 			c.start();
 			this.consumers.add(c);
@@ -143,8 +126,7 @@ public class Simulator {
 			Producer p = new Producer(this.monitor, 
 									  this.bodies.subList(fromIndex, toIndex), 
 									  Collections.unmodifiableList(this.bodies), 
-									  this.dt,
-									  this.bar);
+									  this.dt);
 			p.start();
 			this.producers.add(p);
 		}

@@ -1,4 +1,4 @@
-package pcd.ass01.test;
+package pcd.ass01.conc.test;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,7 +65,7 @@ public class CalculationsTest {
 		
 		this.deltaSplitList = (int) Math.ceil((float) (bodies.size() / nrProd));
 		this.restSplitList = bodies.size() % nrProd;
-		this.monitor = new Monitor<>(bodies.size(), nrCons, bodies);
+		this.monitor = new Monitor<>(bodies.size(), nrCons, bodies, nrProd+1);
 		this.consumers = new ArrayList<>();
 		this.producers = new ArrayList<>();
 		
@@ -159,13 +159,13 @@ public class CalculationsTest {
 			fromIndex = i * deltaSplitList;
 			toIndex = (i + 1) * deltaSplitList + (i == nrProd - 1 ? restSplitList : 0);
 			
-			Producer p = new Producer(this.monitor,
+			/*Producer p = new Producer(this.monitor,
 									  Collections.unmodifiableList(this.bodies),
 									  this.dt,
 									  fromIndex,
 									  toIndex);
 			p.start();
-			this.producers.add(p);
+			this.producers.add(p);*/
 		}
 	}
 	

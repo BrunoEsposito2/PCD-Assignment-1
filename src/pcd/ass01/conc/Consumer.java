@@ -3,7 +3,7 @@ package pcd.ass01.conc;
 import pcd.ass01.utils.Body;
 import pcd.ass01.utils.Boundary;
 
-class Consumer extends Thread {
+public class Consumer extends Thread {
 
     /* virtual time step */
     double dt;

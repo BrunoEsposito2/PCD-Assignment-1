@@ -24,9 +24,9 @@ class Consumer extends Thread {
 	    //loop forever in search to produced items in the monitor's buffer to "consume" (AKA to update pos and check collision)
 		while (true){
 			try {
-				Body item = monitor.get();
-				consume(item);
-				System.out.println("i have consumed an element!");
+				monitor.get(this);
+				//consume(item);
+				
 			} catch (InterruptedException ex){
 				ex.printStackTrace();
 			}
@@ -34,7 +34,9 @@ class Consumer extends Thread {
 		}
 	}
 	
-	private void consume(Body item){
+	public void consume(Body item){
+		System.out.println("i have consumed an element!");
+		
 	    /* compute bodies new pos */
 	    item.updatePos(dt);
             

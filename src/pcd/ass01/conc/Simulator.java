@@ -69,7 +69,7 @@ public class Simulator {
 		
 		this.deltaSplitList = (int) Math.ceil((float) (bodies.size() / nrProd));
 		this.restSplitList = bodies.size() % nrProd;
-		this.monitor = new Monitor<>(bodies.size(), nrCons, bodies);
+		this.monitor = new Monitor<>(bodies.size(), nrCons, bodies, nrProd+1);
 		this.consumers = new ArrayList<>();
 		this.producers = new ArrayList<>();
 		
@@ -92,7 +92,7 @@ public class Simulator {
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
-		        
+		    System.out.println("i completed an iteration");
 		    /* update virtual time */
 			vt = vt + dt;
 			iter++;
@@ -119,9 +119,8 @@ public class Simulator {
 		for(int i = 0; i<nrProd; i++) {
 			fromIndex = i * deltaSplitList;
 			toIndex = (i + 1) * deltaSplitList + (i == nrProd-1 ? restSplitList : 0);
-			
+			System.out.println("generated indexes: "+fromIndex +  " "+ toIndex);
 			Producer p = new Producer(this.monitor,
-									  Collections.unmodifiableList(this.bodies),
 									  this.dt,
 									  fromIndex,
 									  toIndex);

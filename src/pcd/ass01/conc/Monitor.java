@@ -1,7 +1,11 @@
 package pcd.ass01.conc;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.*;
+
+import pcd.ass01.utils.Body;
 
 public class Monitor<Item> implements IMonitor<Item> {
 
@@ -9,8 +13,10 @@ public class Monitor<Item> implements IMonitor<Item> {
 	private int in; // points to the next free position
 	private int out; // points to the next full position
 	
-	private int nWaiters;
-	private int nHits;
+	private final int nProdWaiters;
+	private int nProdHits;
+	private final int nConsWaiters;
+	private int nConsHits;
 	private int nReturned;
 	private int nTotToBeReturned;
 	
@@ -19,8 +25,9 @@ public class Monitor<Item> implements IMonitor<Item> {
 
 	private List<Item> readOnlyList;
 	private List<Item> bufferMasterWorkers;
+	private Condition isAllowedToStart;
 	
-	public Monitor(int size, int nWaiters,  List<Item> bmw) {
+	public Monitor(int size, int nConsWaiters,  List<Item> bmw, int nProdWaiters) {
 		in = 0;
 		out = 0;
 		bufferProdCons = (Item[]) new Object[size];
@@ -28,22 +35,32 @@ public class Monitor<Item> implements IMonitor<Item> {
 		notEmpty = mutex.newCondition();
 		notFull = mutex.newCondition();
 		
-		this.nWaiters = nWaiters;
-		this.nHits = 0;
+		this.nProdWaiters = nProdWaiters;
+		this.nProdHits = 0;
+		this.nConsWaiters = nConsWaiters;
+		this.nConsHits = 0;
 		this.nReturned = 0;
 		this.nTotToBeReturned = size;
 		this.notAllInBarrier = mutex.newCondition();
 		
 		this.isAllowedToWork = mutex.newCondition();
+		this.isAllowedToStart = mutex.newCondition();
 		this.isAllowedToLead = mutex.newCondition();
 		this.bufferMasterWorkers = bmw;
 	}
 	
 	@Override
-	public void waitMaster() throws InterruptedException {
+	public void synchMasterWorker() throws InterruptedException {
 		try {
 			mutex.lock();
-			this.isAllowedToWork.await();
+			this.nProdHits++;
+			if(this.areAllProdHits()) {
+				this.isAllowedToStart.signalAll();
+				this.nProdHits = 0;
+			}  else {
+				this.isAllowedToStart.await();
+			}
+			
 			
 		} finally {
 			mutex.unlock();
@@ -55,14 +72,20 @@ public class Monitor<Item> implements IMonitor<Item> {
 		try {
 			mutex.lock();
 			this.readOnlyList = rol;
+			
+			//this.isAllowedToWork.signalAll();
+			System.out.println("master is waiting workers...");
+			this.synchMasterWorker();
+			
 			this.isAllowedToWork.signalAll();
 			this.isAllowedToLead.await();
 			
 			//=======================================
+			System.out.println("master is awake!");
 			this.nReturned = 0;
-			this.nHits = 0;
-			System.out.println("awake!");
+			this.nConsHits = 0;
 			this.notAllInBarrier.signalAll();
+			System.out.println("wake up consumers!");
 			
 		} finally {
 			mutex.unlock();
@@ -70,10 +93,11 @@ public class Monitor<Item> implements IMonitor<Item> {
 	}
 	
 	@Override
-	public List<Item> getWorkerSublist(int from, int to) {
+	public void getWorkerSublist(Producer p) {
 		try {
 			mutex.lock();
-			return this.bufferMasterWorkers.subList(from, to);
+			p.setToProduce((List<Body>) this.bufferMasterWorkers.subList(p.from, p.to));
+			p.setBodies((List<Body>) this.readOnlyList);
 			
 		} finally {
 			mutex.unlock();
@@ -83,34 +107,44 @@ public class Monitor<Item> implements IMonitor<Item> {
 	public void put(Item item) throws InterruptedException {
 		try {
 			mutex.lock();
-			if (isFull()) {
+			/*if (isFull()) {
 				notFull.await();
-			}
+			}*/
+			
 			bufferProdCons[in] = item;
 			in = (in + 1) % bufferProdCons.length;
 			if (wasEmpty()) {
-				notEmpty.signal();
+				System.out.println("i'm waking a consumer 'cause i've produced something");
+				notEmpty.signalAll();
 			}
 		} finally {
 			mutex.unlock();
 		}
 	}
 
-	public Item get() throws InterruptedException {
+	public void get(Consumer c) throws InterruptedException {
 		try {
 			mutex.lock();
 			
 			while (isEmpty()) {
-				if(areAllGet()) hitAndWaitAll();
-				else  			notEmpty.await();
+				if(areAllGet()) {
+					System.out.println("i'm a consumer and i'm going to the barrier");
+					hitAndWaitAll();
+				}
+				else {
+					System.out.println("i'm waiting elements");
+					notEmpty.await();
+				}
 			}
 			Item item = bufferProdCons[out];
 			out = (out + 1) % bufferProdCons.length;
-			if (wasFull()) {
+			/*if (wasFull()) {
 				notFull.signal();
-			}
+			}*/
+			c.consume((Body)item);
+			System.out.println("i consumed an element!");
 			countReturnedElement();
-			return item;
+			
 		} finally {
 			mutex.unlock();
 		}
@@ -127,18 +161,20 @@ public class Monitor<Item> implements IMonitor<Item> {
 		
 	}
 
-	@Override
-	public void hitAndWaitAll() throws InterruptedException {
+	
+	private void hitAndWaitAll() throws InterruptedException {
 		try {
+			
 			mutex.lock();
+			this.nConsHits++;
 			
-			this.nHits++;
-			
-			System.out.println(this.nHits + " have hit barrier");
+			System.out.println(this.nConsHits + " have hit barrier");
 			if(!areAllOnBarrier()) {
+				System.out.println("i'm going to sleep");
 				notAllInBarrier.await();
 			} else {
-				isAllowedToLead.notify();
+				System.out.println("i'm waking master");
+				isAllowedToLead.signal();
 			}
 			//if a thread reach this point the whole array of bodies is processed and all thread 
 			//have been blocked the barrier, so the counter must be reset for the next iteration
@@ -150,7 +186,10 @@ public class Monitor<Item> implements IMonitor<Item> {
 	}
 
 	
-
+	private boolean areAllProdHits() {
+		return this.nProdHits == this.nProdWaiters;
+	}
+	
 	private boolean isFull() {
 		return (in + 1) % bufferProdCons.length == out;
 	}
@@ -168,7 +207,7 @@ public class Monitor<Item> implements IMonitor<Item> {
 	}
 	
 	private boolean areAllOnBarrier() {
-		return this.nHits == this.nWaiters;
+		return this.nConsHits == this.nConsWaiters;
 	}
 	
 	private boolean areAllGet() {

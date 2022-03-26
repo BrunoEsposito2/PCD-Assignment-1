@@ -5,16 +5,16 @@ import java.util.List;
 public interface IMonitor<Item> {
 
 	
-	void waitMaster() throws InterruptedException;
+	void synchMasterWorker() throws InterruptedException;
 	
 	void startAndWaitWorkers(List<Item> rol) throws InterruptedException;
 	
-	public List<Item> getWorkerSublist(int from, int to);
+	public void getWorkerSublist(Producer p);
 	
     void put(Item item) throws InterruptedException;
     
-    Item get() throws InterruptedException;
+    void get(Consumer c) throws InterruptedException;
     
-    void hitAndWaitAll() throws InterruptedException;
+    //void hitAndWaitAll() throws InterruptedException;
     
 }

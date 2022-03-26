@@ -8,7 +8,7 @@ import pcd.ass01.utils.V2d;
 public class Producer extends Thread {
 
     //the total list of bodies of the simulation
-    private final List<Body> bodies;
+    private List<Body> bodies;
     
     //a sublist of bodies to produce
     private List<Body> toProduce;
@@ -18,11 +18,10 @@ public class Producer extends Thread {
     
     private double dt;
     
-    private final int from, to;
+    public final int from, to;
     
-    public Producer(IMonitor<Body> monitor,  List<Body> bodies, double dt, int f, int t){
+    public Producer(IMonitor<Body> monitor, double dt, int f, int t){
             this.monitor = monitor;
-            this.bodies = bodies;
             this.dt = dt;
             this.from = f;
             this.to = t;
@@ -31,25 +30,32 @@ public class Producer extends Thread {
     public void run(){
 	    while(true) {
 	    	try {
-				this.monitor.waitMaster();
+	    		System.out.println("i'm going to wait master");
+				this.monitor.synchMasterWorker();
+	    		
+				monitor.getWorkerSublist(this);
+		    	
+	    		//for each body in toProduce put in the monitor's buffer the updated body
+		        for(Body b:toProduce){
+		        	b = produce(b);
+	            	monitor.put(b);
+		        }
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-	    	this.toProduce = monitor.getWorkerSublist(this.from, this.to);
 	    	
-    		//for each body in toProduce put in the monitor's buffer the updated body
-	        for(Body b:toProduce){
-	        	b = produce(b);
-	            try {
-	            	monitor.put(b);
-	            } catch(InterruptedException ex){
-	            	ex.printStackTrace();
-	            }
-	        }
 	    }
     }
     
-    private Body produce(Body b){
+    public void setBodies(List<Body> bodies) {
+		this.bodies = bodies;
+	}
+
+	public void setToProduce(List<Body> toProduce) {
+		this.toProduce = toProduce;
+	}
+
+	private Body produce(Body b){
         /* compute total force on bodies */
         V2d totalForce = computeTotalForceOnBody(b);
 

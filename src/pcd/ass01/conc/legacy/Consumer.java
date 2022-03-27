@@ -1,4 +1,4 @@
-package pcd.ass01.conc;
+package pcd.ass01.conc.legacy;
 
 import pcd.ass01.utils.Body;
 import pcd.ass01.utils.Boundary;

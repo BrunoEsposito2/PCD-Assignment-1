@@ -1,5 +1,7 @@
 package pcd.ass01.conc.patterns;
 
+import pcd.ass01.utils.NotImplementedException;
+
 public abstract class AbstractProducer<Item, M extends IProducerConsumer<Item>> extends Thread {
 
 	protected final M monitor;
@@ -7,7 +9,7 @@ public abstract class AbstractProducer<Item, M extends IProducerConsumer<Item>> 
 		this.monitor = m;
 	}
 
-	public abstract Item produce();
-	public abstract Item produce(Item item);
+	public abstract Item produce() throws NotImplementedException;
+	public abstract Item produce(Item item) throws NotImplementedException;
 	
 }

@@ -13,6 +13,5 @@ public class ConcurrentBodySimulation {
 		
     	Simulator sim = new Simulator(viewer);
         sim.execute(50000);
-        
     }
 }

@@ -6,5 +6,5 @@ import java.util.Map;
 public interface IMasterWorkers<Item> extends IMonitor{
 	void synchMasterWorker() throws InterruptedException;
 	void startAndWaitWorkers(List<Item> rol) throws InterruptedException;
-	public Map<String, ? extends Object> initializeWorkerResources();
+	Map<String, ? extends Object> initializeWorkerResources(Object[] args);
 }

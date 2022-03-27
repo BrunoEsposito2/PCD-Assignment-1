@@ -1,4 +1,4 @@
-package pcd.ass01.conc;
+package pcd.ass01.conc.legacy;
 
 import java.util.Collection;
 import java.util.Collections;

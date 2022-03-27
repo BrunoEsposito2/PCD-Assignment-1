@@ -1,5 +1,7 @@
 package pcd.ass01.conc.patterns;
 
+import java.util.Optional;
+
 public abstract class AbstractSynchConsumer<Item, M extends IProducerConsumer<Item> & IBarrier> 
 					  extends AbstractConsumer<Item, M>{
 
@@ -11,8 +13,8 @@ public abstract class AbstractSynchConsumer<Item, M extends IProducerConsumer<It
 	    //loop forever in search to produced items in the monitor's buffer to "consume" (AKA to update pos and check collision)
 		while (true){
 			try {
-				Item item = monitor.get();
-				consume(item);
+				Optional<Item> item = monitor.get();
+				if(!item.equals(Optional.empty())) consume(item.get());
 				monitor.evaluateSynchronize();
 				
 			} catch (InterruptedException ex){

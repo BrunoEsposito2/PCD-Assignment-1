@@ -1,6 +1,8 @@
 package pcd.ass01.conc;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
 
 import pcd.ass01.utils.Body;
 import pcd.ass01.utils.Boundary;
@@ -9,14 +11,12 @@ import pcd.ass01.utils.SimulationView;
 import pcd.ass01.utils.V2d;
 
 public class Simulator {
-
-        
 	private SimulationView viewer;
 
 	/* bodies in the field */
 	ArrayList<Body> bodies;
 	
-	private Monitor<Body> monitor;
+	private MonitorImpl<Body> monitor;
 
 	/* boundary of the field */
 	private Boundary bounds;
@@ -28,9 +28,9 @@ public class Simulator {
 	double dt;
 	
 	/* number of producers in producers-consumers pattern*/
-	private final int nrProd;
+	private final int nrVelCalculators;
 	
-	private final int nrCons;
+	private final int nrPosCalculators;
 	
 	/* number of total process available*/
 	private final int nrProcessors;
@@ -42,8 +42,8 @@ public class Simulator {
 	private final int restSplitList;
 	
 	/*Lists of producers and consumers*/
-	private ArrayList<Consumer> consumers;
-	private ArrayList<Producer> producers;
+	private ArrayList<VelCalculator> velCalculators;
+	private ArrayList<PosCalculator> posCalculators;
 
 	public Simulator(SimulationView viewer) {
 		this.viewer = viewer;
@@ -61,21 +61,21 @@ public class Simulator {
 		// testBodySet4_many_bodies();
 		
 		this.nrProcessors = Runtime.getRuntime().availableProcessors()+1;
-		this.nrProd =  nrProcessors >= bodies.size() ? 
+		this.nrVelCalculators =  nrProcessors >= bodies.size() ? 
 					   bodies.size() : 
 					   (int)((6.0/10.0)*(nrProcessors)); //TODO remove magic number
 		
-		this.nrCons = this.nrProcessors - this.nrProd;
+		this.nrPosCalculators = this.nrProcessors - this.nrVelCalculators;
 		
-		this.deltaSplitList = (int) Math.ceil((float) (bodies.size() / nrProd));
-		this.restSplitList = bodies.size() % nrProd;
-		this.monitor = new Monitor<>(bodies.size(), nrCons, bodies, nrProd+1);
-		this.consumers = new ArrayList<>();
-		this.producers = new ArrayList<>();
+		this.deltaSplitList = (int) Math.ceil((float) (bodies.size() / nrVelCalculators));
+		this.restSplitList = bodies.size() % nrVelCalculators;
+		this.monitor = new MonitorImpl<>(nrVelCalculators+1, nrPosCalculators, bodies);
+		this.posCalculators = new ArrayList<>();
+		this.velCalculators = new ArrayList<>();
 		
 		//initialize consumers: they will remain alive the whole time
 		this.initialize_producers();	
-		this.initialize_consumers();
+		this.initialize_position_calculators();
 	}
 	
 	public void execute(long nSteps) {
@@ -103,29 +103,26 @@ public class Simulator {
 		}
 	}
 	
-	private void initialize_consumers() {
+	private void initialize_position_calculators() {
 		
-		System.out.println(nrProcessors + " " + nrProd + " " + nrCons);
-		for(int i = 0; i < this.nrCons; i++) {
-		    Consumer c = new Consumer(monitor, dt, bounds);
-			c.start();
-			this.consumers.add(c);
+		System.out.println(nrProcessors + " " + nrVelCalculators + " " + nrPosCalculators);
+		for(int i = 0; i < this.nrPosCalculators; i++) {
+		    PosCalculator pc = new PosCalculator(monitor, dt, bounds);
+			pc.start();
+			this.posCalculators.add(pc);
 		}
 	}
 	
 	private void initialize_producers() {
 		int fromIndex, toIndex;
         
-		for(int i = 0; i<nrProd; i++) {
+		for(int i = 0; i<nrVelCalculators; i++) {
 			fromIndex = i * deltaSplitList;
-			toIndex = (i + 1) * deltaSplitList + (i == nrProd-1 ? restSplitList : 0);
+			toIndex = (i + 1) * deltaSplitList + (i == nrVelCalculators-1 ? restSplitList : 0);
 			System.out.println("generated indexes: "+fromIndex +  " "+ toIndex);
-			Producer p = new Producer(this.monitor,
-									  this.dt,
-									  fromIndex,
-									  toIndex);
-			p.start();
-			this.producers.add(p);
+			VelCalculator vc = new VelCalculator(this.monitor, fromIndex, toIndex, this.dt);
+			vc.start();
+			this.velCalculators.add(vc);
 		}
 	}
 	

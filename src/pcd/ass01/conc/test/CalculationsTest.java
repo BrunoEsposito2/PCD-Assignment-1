@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import pcd.ass01.conc.Consumer;
-import pcd.ass01.conc.Monitor;
-import pcd.ass01.conc.Producer;
+import pcd.ass01.conc.legacy.Consumer;
+import pcd.ass01.conc.legacy.Monitor;
+import pcd.ass01.conc.legacy.Producer;
 import pcd.ass01.utils.Body;
 import pcd.ass01.utils.Boundary;
 import pcd.ass01.utils.P2d;

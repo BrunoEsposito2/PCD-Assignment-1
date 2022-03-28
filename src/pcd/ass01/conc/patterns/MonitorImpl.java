@@ -1,4 +1,4 @@
-package pcd.ass01.conc;
+package pcd.ass01.conc.patterns;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,25 +9,22 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import pcd.ass01.conc.patterns.IBarrier;
-import pcd.ass01.conc.patterns.IMasterWorkers;
-import pcd.ass01.conc.patterns.IProducerConsumer;
 import pcd.ass01.utils.Body;
 
-public class MonitorImpl<Body> implements IProducerConsumer<Body>, IMasterWorkers<Body>, IBarrier{
+public class MonitorImpl<Item> implements IMasterWorkers<Item>, IProducerConsumer<Item>, IBarrier{
 
 	private Lock mutex;
 	
-	private Body[] bufferProdCons;
-	private int in; // points to the next free position
-	private int out; // points to the next full position
-	private Condition notEmpty, notFull;
-	
-	private List<Body> readOnlyList;
-	private List<Body> bufferMasterWorkers;
+	private List<Item> readOnlyList;
+	private List<Item> bufferMasterWorkers;
 	private final int nWorkers;
 	private int nWorkersHits;
 	private Condition isAllowedToWork, isAllowedToStart;
+	
+	private Item[] bufferProdCons;
+	private int in; // points to the next free position
+	private int out; // points to the next full position
+	private Condition notEmpty, notFull;
 	
 	private final int nConsWaiters;
 	private int nConsHits;
@@ -35,84 +32,32 @@ public class MonitorImpl<Body> implements IProducerConsumer<Body>, IMasterWorker
 	private int nTotToBeReturned;
 	private Condition notAllInBarrier, isAllowedToContinue;
 	
-	public MonitorImpl(int nWorkers, int nConsWaiters, List<Body> bodies) {
+	@SuppressWarnings("unchecked")
+	public MonitorImpl(int nWorkers, int nConsWaiters, List<Item> items) {
 		mutex = new ReentrantLock();
 		
-		this.bufferProdCons = (Body[]) new Object[bodies.size()+1];
+		this.nWorkers = nWorkers;
+		this.nWorkersHits = 0;
+		this.bufferMasterWorkers = items;
+		this.readOnlyList = Collections.unmodifiableList(items);
+		this.isAllowedToWork = mutex.newCondition();
+		this.isAllowedToStart = mutex.newCondition();
+		
+		this.bufferProdCons = (Item[]) new Object[items.size()+1];
 		in = 0;
 		out = 0;
 		notEmpty = mutex.newCondition();
 		notFull = mutex.newCondition();
 		
-		this.nWorkers = nWorkers;
-		this.nWorkersHits = 0;
-		this.bufferMasterWorkers = bodies;
-		this.readOnlyList = Collections.unmodifiableList(bodies);
-		this.isAllowedToWork = mutex.newCondition();
-		this.isAllowedToStart = mutex.newCondition();
-		
 		this.nConsWaiters = nConsWaiters;
 		this.nConsHits = 0;
 		this.nReturned = 0;
-		this.nTotToBeReturned = bodies.size();
+		this.nTotToBeReturned = items.size();
 		this.notAllInBarrier = mutex.newCondition();
 		this.isAllowedToContinue = mutex.newCondition();
 	}
 
-	@Override
-	public void put(Body item) throws InterruptedException {
-		try {
-			mutex.lock();
-			/*if (isFull()) {
-				notFull.await();
-			}*/
-			
-			bufferProdCons[in] = item;
-			in = (in + 1) % bufferProdCons.length;
-			if (wasEmpty()) {
-				notEmpty.signalAll();
-			}
-		} finally {
-			mutex.unlock();
-		}
-	}
-
-	@Override
-	public Optional<Body> get() throws InterruptedException {
-		try {
-			mutex.lock();
-			
-			while (isEmpty()) {
-				if(areAllGet()) {
-					return Optional.empty();
-				}
-				else {
-					notEmpty.await();
-				}
-			}
-			Optional<Body> ret;
-			ret = Optional.of(bufferProdCons[out]);
-			out = (out + 1) % bufferProdCons.length;
-			if (wasFull()) {
-				notFull.signal();
-			}
-			countReturnedElement();
-			return ret;
-		} finally {
-			mutex.unlock();
-		}
-	}
 	
-	private void countReturnedElement() {
-		nReturned++;
-		if(areAllGet()) {
-				notEmpty.signalAll();	//unlocks all getters stuck on the notEmpty wait 
-										//when there are no more elements to process
-		} else {
-			//keep consuming
-		}
-		
-	}
 
 	@Override
 	public void synchMasterWorker() throws InterruptedException {
@@ -132,7 +77,7 @@ public class MonitorImpl<Body> implements IProducerConsumer<Body>, IMasterWorker
 	}
 
 	@Override
-	public void startAndWaitWorkers(List<Body> rol) throws InterruptedException {
+	public void startAndWaitWorkers(List<Item> rol) throws InterruptedException {
 		try {
 			mutex.lock();
 			this.readOnlyList = rol;
@@ -159,13 +104,64 @@ public class MonitorImpl<Body> implements IProducerConsumer<Body>, IMasterWorker
 	public Map<String, ? extends Object> initializeWorkerResources(Object[] args) {
 		try {
 			mutex.lock();
-			Map<String, List<Body>> ret = new HashMap<>();
+			Map<String, List<Item>> ret = new HashMap<>();
 			ret.put("bodiesView", Collections.unmodifiableList(this.readOnlyList));
 			ret.put("toProduce", bufferMasterWorkers.subList((int)args[0],(int) args[1]));
 			return ret;
 		} finally {
 			mutex.unlock();
 		}
+	}
+	
+	@Override
+	public void put(Item item) throws InterruptedException {
+		try {
+			mutex.lock();
+			
+			bufferProdCons[in] = item;
+			in = (in + 1) % bufferProdCons.length;
+			if (wasEmpty()) {
+				notEmpty.signalAll();
+			}
+		} finally {
+			mutex.unlock();
+		}
+	}
+
+	@Override
+	public Optional<Item> get() throws InterruptedException {
+		try {
+			mutex.lock();
+			
+			while (isEmpty()) {
+				if(areAllGet()) {
+					return Optional.empty();
+				}
+				else {
+					notEmpty.await();
+				}
+			}
+			Optional<Item> ret;
+			ret = Optional.of(bufferProdCons[out]);
+			out = (out + 1) % bufferProdCons.length;
+			if (wasFull()) {
+				notFull.signal();
+			}
+			countReturnedElement();
+			return ret;
+		} finally {
+			mutex.unlock();
+		}
+	}
+	
+	private void countReturnedElement() {
+		nReturned++;
+		if(areAllGet()) {
+				notEmpty.signalAll();	//unlocks all getters stuck on the notEmpty wait 
+										//when there are no more elements to process
+		} else {
+			//keep consuming
+		}	
 	}
 
 	@Override
@@ -201,10 +197,6 @@ public class MonitorImpl<Body> implements IProducerConsumer<Body>, IMasterWorker
 		return this.nWorkersHits == this.nWorkers;
 	}
 	
-	private boolean isFull() {
-		return (in + 1) % bufferProdCons.length == out;
-	}
-
 	private boolean wasFull() {
 		return out == (in + 2) % bufferProdCons.length;
 	}

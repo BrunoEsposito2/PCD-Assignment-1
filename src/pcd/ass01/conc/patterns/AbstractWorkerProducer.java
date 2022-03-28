@@ -1,5 +1,6 @@
 package pcd.ass01.conc.patterns;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -8,12 +9,13 @@ import pcd.ass01.utils.NotImplementedException;
 public abstract class AbstractWorkerProducer<Item, M extends IProducerConsumer<Item> & IMasterWorkers<Item>> 
 					  extends AbstractProducer<Item,  M>{
 
-	protected List<Item> toProduce;
+	private List<Item> toProduce;
 	protected Map<String, ? extends Object> resources;
-	protected Object[] args;
+	private Object[] args;
 	
 	public AbstractWorkerProducer(M monitorMW) {
 		super(monitorMW);
+		this.args = new Object[0];
 	}
 	
 	public void run(){
@@ -25,7 +27,9 @@ public abstract class AbstractWorkerProducer<Item, M extends IProducerConsumer<I
 		    	
 	    		//for each body in toProduce put in the monitor's buffer the updated body
 		        for(Item i:toProduce){
-		        	i = produce(i);
+		        	Object[] temp = new Object[1];
+		        	temp[0] = i;
+		        	i = produce(temp);
 	            	monitor.put(i);
 		        }
 			} catch (InterruptedException | NotImplementedException e) {
@@ -33,6 +37,20 @@ public abstract class AbstractWorkerProducer<Item, M extends IProducerConsumer<I
 			}
 	    }
     }
+	
+	public void addResourceInitParameter(Object o) {
+		List<Object> temp = new ArrayList<>();
+		for(int i = 0; i < this.args.length; i++) {
+			temp.add(this.args[i]);
+		}
+		
+		temp.add(o);
+		this.args = temp.toArray();
+	}
+	
+	public void assignTask(List<Item> workerSublist) {
+		this.toProduce = workerSublist;
+	}
 	
 	protected abstract void manageResources();
 }

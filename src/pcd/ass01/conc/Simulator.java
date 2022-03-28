@@ -15,8 +15,8 @@ public class Simulator {
 	private Optional<SimulationView> viewer;
 
 	/* bodies in the field */
-	ArrayList<Body> bodies;
-	
+	private ArrayList<Body> bodies;
+
 	private MonitorImpl<Body> monitor;
 
 	/* boundary of the field */
@@ -52,14 +52,13 @@ public class Simulator {
 		/* init virtual time */
 		this.dt = 0.001;
 		this.vt = 0;
-		
-		
+			
 		/* initializing boundary and bodies */
-
+		
 		//testBodySet1_two_bodies();
-		// testBodySet2_three_bodies();
+		 testBodySet2_three_bodies();
 		// testBodySet3_some_bodies();
-		 testBodySet4_many_bodies();
+		 //testBodySet4_many_bodies();
 		
 		this.nrProcessors = Runtime.getRuntime().availableProcessors()+1;
 		this.nrVelCalculators =  nrProcessors >= bodies.size() ? 
@@ -83,7 +82,6 @@ public class Simulator {
 
 		long iter = 0;
 		
-		
 		/* simulation loop */
 		while (iter < nSteps) {
 		    
@@ -101,6 +99,10 @@ public class Simulator {
 			/* display current stage */
 			if(viewer.isPresent()) viewer.get().display(bodies, vt, iter, bounds);
 		}
+	}
+	
+	public ArrayList<Body> getBodies() {
+		return this.bodies;
 	}
 	
 	private void initialize_position_calculators() {
@@ -127,7 +129,7 @@ public class Simulator {
 		bounds = new Boundary(-4.0, -4.0, 4.0, 4.0);
 		bodies = new ArrayList<Body>();
 		bodies.add(new Body(0, new P2d(-0.1, 0), new V2d(0,0), 1));
-		bodies.add(new Body(1, new P2d(0.1, 0), new V2d(0,0), 2));		
+		bodies.add(new Body(1, new P2d(0.1, 0), new V2d(0,0), 2));
 	}
 
 	private void testBodySet2_three_bodies() {
@@ -163,7 +165,4 @@ public class Simulator {
 			bodies.add(b);
 		}
 	}
-	
-	
-
 }

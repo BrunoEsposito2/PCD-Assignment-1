@@ -14,9 +14,8 @@ public abstract class AbstractSynchConsumer<Item, M extends IProducerConsumer<It
 		while (true){
 			try {
 				Optional<Item> item = monitor.get();
-				if(!item.equals(Optional.empty())) consume(item.get());
+				if(item.isPresent()) consume(item.get());
 				monitor.evaluateSynchronize();
-				
 			} catch (InterruptedException ex){
 				ex.printStackTrace();
 			}

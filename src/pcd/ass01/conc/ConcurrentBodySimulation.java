@@ -1,5 +1,7 @@
 package pcd.ass01.conc;
 
+import java.util.Optional;
+
 import pcd.ass01.utils.SimulationView;
 
 /**
@@ -11,7 +13,7 @@ public class ConcurrentBodySimulation {
         
 		SimulationView viewer = new SimulationView(620,620);
 		
-    	Simulator sim = new Simulator(viewer);
+    	Simulator sim = new Simulator(Optional.of(viewer));
         sim.execute(50000);
     }
 }

@@ -2,6 +2,7 @@ package pcd.ass01.conc;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Random;
 
 import pcd.ass01.utils.Body;
@@ -11,7 +12,7 @@ import pcd.ass01.utils.SimulationView;
 import pcd.ass01.utils.V2d;
 
 public class Simulator {
-	private SimulationView viewer;
+	private Optional<SimulationView> viewer;
 
 	/* bodies in the field */
 	ArrayList<Body> bodies;
@@ -45,7 +46,7 @@ public class Simulator {
 	private ArrayList<VelCalculator> velCalculators;
 	private ArrayList<PosCalculator> posCalculators;
 
-	public Simulator(SimulationView viewer) {
+	public Simulator(Optional<SimulationView> viewer) {
 		this.viewer = viewer;
 		
 		/* init virtual time */
@@ -55,10 +56,10 @@ public class Simulator {
 		
 		/* initializing boundary and bodies */
 
-		testBodySet1_two_bodies();
+		//testBodySet1_two_bodies();
 		// testBodySet2_three_bodies();
 		// testBodySet3_some_bodies();
-		// testBodySet4_many_bodies();
+		 testBodySet4_many_bodies();
 		
 		this.nrProcessors = Runtime.getRuntime().availableProcessors()+1;
 		this.nrVelCalculators =  nrProcessors >= bodies.size() ? 
@@ -92,20 +93,17 @@ public class Simulator {
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
-		    System.out.println("i completed an iteration");
+			
 		    /* update virtual time */
 			vt = vt + dt;
 			iter++;
 
 			/* display current stage */
-			viewer.display(bodies, vt, iter, bounds);
-
+			if(viewer.isPresent()) viewer.get().display(bodies, vt, iter, bounds);
 		}
 	}
 	
 	private void initialize_position_calculators() {
-		
-		System.out.println(nrProcessors + " " + nrVelCalculators + " " + nrPosCalculators);
 		for(int i = 0; i < this.nrPosCalculators; i++) {
 		    PosCalculator pc = new PosCalculator(monitor, dt, bounds);
 			pc.start();
@@ -119,7 +117,6 @@ public class Simulator {
 		for(int i = 0; i<nrVelCalculators; i++) {
 			fromIndex = i * deltaSplitList;
 			toIndex = (i + 1) * deltaSplitList + (i == nrVelCalculators-1 ? restSplitList : 0);
-			System.out.println("generated indexes: "+fromIndex +  " "+ toIndex);
 			VelCalculator vc = new VelCalculator(this.monitor, fromIndex, toIndex, this.dt);
 			vc.start();
 			this.velCalculators.add(vc);

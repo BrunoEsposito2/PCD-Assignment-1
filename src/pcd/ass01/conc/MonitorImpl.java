@@ -38,7 +38,7 @@ public class MonitorImpl<Body> implements IProducerConsumer<Body>, IMasterWorker
 	public MonitorImpl(int nWorkers, int nConsWaiters, List<Body> bodies) {
 		mutex = new ReentrantLock();
 		
-		this.bufferProdCons = (Body[]) new Object[bodies.size()];
+		this.bufferProdCons = (Body[]) new Object[bodies.size()+1];
 		in = 0;
 		out = 0;
 		notEmpty = mutex.newCondition();
@@ -70,7 +70,6 @@ public class MonitorImpl<Body> implements IProducerConsumer<Body>, IMasterWorker
 			bufferProdCons[in] = item;
 			in = (in + 1) % bufferProdCons.length;
 			if (wasEmpty()) {
-				System.out.println("i'm waking a consumer 'cause i've produced something");
 				notEmpty.signalAll();
 			}
 		} finally {
@@ -88,7 +87,6 @@ public class MonitorImpl<Body> implements IProducerConsumer<Body>, IMasterWorker
 					return Optional.empty();
 				}
 				else {
-					System.out.println("i'm waiting elements");
 					notEmpty.await();
 				}
 			}
@@ -139,8 +137,6 @@ public class MonitorImpl<Body> implements IProducerConsumer<Body>, IMasterWorker
 			mutex.lock();
 			this.readOnlyList = rol;
 			
-			//this.isAllowedToWork.signalAll();
-			System.out.println("master is waiting workers...");
 			this.synchMasterWorker();
 			
 			this.isAllowedToWork.signalAll();
@@ -149,11 +145,9 @@ public class MonitorImpl<Body> implements IProducerConsumer<Body>, IMasterWorker
 			//=======================================
 			//if master reach this point the whole array of bodies is processed and all thread 
 			//have been blocked the barrier, so the counter must be reset for the next iteration
-			System.out.println("master is awake!");
 			this.nReturned = 0;
 			this.nConsHits = 0;
 			this.notAllInBarrier.signalAll();
-			System.out.println("wake up consumers!");
 			
 		} finally {
 			mutex.unlock();
@@ -191,12 +185,9 @@ public class MonitorImpl<Body> implements IProducerConsumer<Body>, IMasterWorker
 			
 			this.nConsHits++;
 			
-			System.out.println(this.nConsHits + " have hit barrier");
 			if(!areAllOnBarrier()) {
-				System.out.println("i'm going to sleep");
 				notAllInBarrier.await();
 			} else {
-				System.out.println("i'm waking master");
 				isAllowedToContinue.signal();
 			}
 			

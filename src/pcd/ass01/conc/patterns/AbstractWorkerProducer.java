@@ -19,7 +19,6 @@ public abstract class AbstractWorkerProducer<Item, M extends IProducerConsumer<I
 	public void run(){
 	    while(true) {
 	    	try {
-	    		System.out.println("i'm going to wait master");
 				this.monitor.synchMasterWorker();
 				this.resources = monitor.initializeWorkerResources(args);
 		    	manageResources();

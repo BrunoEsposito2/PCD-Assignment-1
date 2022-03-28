@@ -10,6 +10,7 @@ public abstract class AbstractProducer<Item, M extends IProducerConsumer<Item>> 
 	}
 
 	public abstract Item produce() throws NotImplementedException;
-	public abstract Item produce(Item item) throws NotImplementedException;
+	public abstract Item produce(Object[] args) throws NotImplementedException;
+	
 	
 }

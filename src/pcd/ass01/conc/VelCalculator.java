@@ -4,6 +4,7 @@ import java.util.List;
 
 import pcd.ass01.conc.patterns.AbstractWPWithBarrier;
 import pcd.ass01.conc.patterns.AbstractWorkerProducer;
+import pcd.ass01.conc.patterns.MonitorImpl;
 import pcd.ass01.utils.Body;
 import pcd.ass01.utils.NotImplementedException;
 import pcd.ass01.utils.V2d;
@@ -18,10 +19,8 @@ public class VelCalculator extends AbstractWPWithBarrier<Body, MonitorImpl<Body>
 	public VelCalculator(MonitorImpl<Body> monitorMW, int from, int to, double dt) {
 		super(monitorMW);
 		this.dt = dt;
-		args = new Integer[2];
-		args[0] = from;
-		args[1] = to;
-		
+		this.addResourceInitParameter(from);
+		this.addResourceInitParameter(to);
 	}
 
 	@Override
@@ -30,7 +29,8 @@ public class VelCalculator extends AbstractWPWithBarrier<Body, MonitorImpl<Body>
 	}
 
 	@Override
-	public Body produce(Body item) {
+	public Body produce(Object[] args) {
+		Body item = (Body) args[0];
 		 /* compute total force on bodies */
         V2d totalForce = computeTotalForceOnBody(item);
 
@@ -46,7 +46,7 @@ public class VelCalculator extends AbstractWPWithBarrier<Body, MonitorImpl<Body>
 	@Override
 	protected void manageResources() {
 		this.bodiesView = (List<Body>) resources.get("bodiesView");
-		this.toProduce = (List<Body>) resources.get("toProduce");
+		this.assignTask((List<Body>) resources.get("toProduce"));
 	}
 	
 	 private V2d computeTotalForceOnBody(Body b) {

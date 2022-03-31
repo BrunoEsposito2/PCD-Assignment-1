@@ -1,5 +1,7 @@
 package pcd.ass01.seq;
 
+import java.util.Optional;
+
 import pcd.ass01.utils.SimulationView;
 
 /**
@@ -13,7 +15,7 @@ public class SequentialBodySimulationMain {
                 
     	SimulationView viewer = new SimulationView(620,620);
 
-    	Simulator sim = new Simulator(viewer);
+    	SequentialSimulator sim = new SequentialSimulator(Optional.of(viewer));
         sim.execute(50000);
     }
 }

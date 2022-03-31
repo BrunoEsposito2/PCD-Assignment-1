@@ -25,6 +25,8 @@ public class Simulator {
 
 		// testBodySet1_two_bodies();
 		// testBodySet2_three_bodies();
+		//testBodySet1_two_bodies();
+		//testBodySet2_three_bodies();
 		// testBodySet3_some_bodies();
 		testBodySet4_many_bodies();
 	}

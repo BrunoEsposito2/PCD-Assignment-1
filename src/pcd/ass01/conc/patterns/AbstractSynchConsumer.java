@@ -22,8 +22,4 @@ public abstract class AbstractSynchConsumer<Item, M extends IProducerConsumer<It
 			
 		}
 	}
-	
-	//@Override
-	//public abstract void consume(Item item);
-
 }

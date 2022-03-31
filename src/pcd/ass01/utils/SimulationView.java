@@ -1,4 +1,4 @@
-package pcd.ass01.seq;
+package pcd.ass01.utils;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;

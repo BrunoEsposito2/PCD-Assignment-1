@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Random;
 
-import pcd.ass01.conc.patterns.MonitorImpl;
+import pcd.ass01.conc.patterns.SynchronizedPipelineMonitor;
 import pcd.ass01.utils.Body;
 import pcd.ass01.utils.Boundary;
 import pcd.ass01.utils.P2d;
@@ -18,7 +18,7 @@ public class Simulator {
 	/* bodies in the field */
 	ArrayList<Body> bodies;
 	
-	private MonitorImpl<Body> monitor;
+	private SynchronizedPipelineMonitor<Body> monitor;
 
 	/* boundary of the field */
 	private Boundary bounds;
@@ -71,7 +71,7 @@ public class Simulator {
 		
 		this.deltaSplitList = (int) Math.ceil((float) (bodies.size() / nrVelCalculators));
 		this.restSplitList = bodies.size() % nrVelCalculators;
-		this.monitor = new MonitorImpl<>(nrVelCalculators+1, nrPosCalculators, bodies);
+		this.monitor = new SynchronizedPipelineMonitor<>(nrVelCalculators+1, nrPosCalculators, bodies);
 		this.posCalculators = new ArrayList<>();
 		this.velCalculators = new ArrayList<>();
 		

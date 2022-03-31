@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import pcd.ass01.utils.Body;
 
-public class MonitorImpl<Item> implements IMasterWorkers<Item>, IProducerConsumer<Item>, IBarrier{
+public class SynchronizedPipelineMonitor<Item> implements IMasterWorkers<Item>, IProducerConsumer<Item>, IBarrier{
 
 	private Lock mutex;
 	
@@ -33,7 +33,7 @@ public class MonitorImpl<Item> implements IMasterWorkers<Item>, IProducerConsume
 	private Condition notAllInBarrier, isAllowedToContinue;
 	
 	@SuppressWarnings("unchecked")
-	public MonitorImpl(int nWorkers, int nConsWaiters, List<Item> items) {
+	public SynchronizedPipelineMonitor(int nWorkers, int nConsWaiters, List<Item> items) {
 		mutex = new ReentrantLock();
 		
 		this.nWorkers = nWorkers;

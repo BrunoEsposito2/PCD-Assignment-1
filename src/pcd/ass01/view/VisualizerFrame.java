@@ -92,7 +92,7 @@ public class VisualizerFrame extends JFrame implements ActionListener {
 		}
 	}
 	
-	public void switchButtons() {
+	private void switchButtons() {
 		if (this.startButton.isEnabled() && !this.stopButton.isEnabled()) {
 			this.startButton.setEnabled(false);
 			this.stopButton.setEnabled(true);

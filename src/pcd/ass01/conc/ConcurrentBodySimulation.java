@@ -3,6 +3,9 @@ package pcd.ass01.conc;
 import java.util.Optional;
 
 import pcd.ass01.utils.SimulationView;
+import pcd.ass01.view.Controller;
+import pcd.ass01.view.Flag;
+import pcd.ass01.view.StartSynch;
 
 /**
  * Bodies simulation - legacy code: concurrent
@@ -13,7 +16,13 @@ public class ConcurrentBodySimulation {
         
 		SimulationView viewer = new SimulationView(620,620);
 		
-    	Simulator sim = new Simulator(Optional.of(viewer));
-        sim.execute(50000);
+		StartSynch synch = new StartSynch();
+		
+    	Simulator sim = new Simulator(Optional.of(viewer), Optional.of(synch));
+        //sim.execute(50000);
+        
+        Controller controller = new Controller();
+        viewer.addListener(controller);
+        viewer.display();
     }
 }

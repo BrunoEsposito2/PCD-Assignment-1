@@ -11,6 +11,10 @@ import pcd.ass01.utils.Boundary;
 import pcd.ass01.utils.P2d;
 import pcd.ass01.utils.SimulationView;
 import pcd.ass01.utils.V2d;
+import pcd.ass01.view.Flag;
+import pcd.ass01.view.StartSynch;
+import pcd.ass01.view.TaskBag;
+import pcd.ass01.view.TaskCompletionLatch;
 
 public class Simulator {
 	private Optional<SimulationView> viewer;
@@ -46,9 +50,12 @@ public class Simulator {
 	/*Lists of producers and consumers*/
 	private ArrayList<VelCalculator> velCalculators;
 	private ArrayList<PosCalculator> posCalculators;
+	
+	private Optional<StartSynch> synch;
 
-	public Simulator(Optional<SimulationView> viewer) {
+	public Simulator(Optional<SimulationView> viewer, Optional<StartSynch> sync) {
 		this.viewer = viewer;
+		this.synch = sync;
 		
 		/* init virtual time */
 		this.dt = 0.001;
@@ -98,7 +105,7 @@ public class Simulator {
 			iter++;
 
 			/* display current stage */
-			if(viewer.isPresent()) viewer.get().display(bodies, vt, iter, bounds);
+			if(viewer.isPresent()) viewer.get().update(bodies, vt, iter, bounds);
 		}
 	}
 	

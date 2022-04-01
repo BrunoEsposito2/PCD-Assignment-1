@@ -139,7 +139,17 @@ public class Body {
             pos.change(pos.getX(), bounds.getY0());
             vel.change(vel.getX(), -vel.getY());
         }
-    }        
+    }     
+    
+    @Override
+    public Body clone() {    
+        P2d newPos = new P2d(this.pos.getX(), this.pos.getY());
+        V2d newVel = new V2d(this.vel.getX(), this.vel.getY());
+        
+		return new Body(this.id, newPos, newVel, this.mass);
+		
+    	
+    }
     
 
 }

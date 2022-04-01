@@ -107,25 +107,13 @@ public class VisualizerFrame extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		String cmd = e.getActionCommand();
 		if (cmd.equals("start")) {
-			//notifyStarted();
 			this.controller.started();
+			
 		} else if (cmd.equals("stop")) {
-			notifyStopped();
+			this.controller.stopped();
 		}
 	}
-	
-	private void notifyStarted(){
-		ArrayList<Body> bodies = new ArrayList<Body>();
-		for (pcd.ass01.view.ActionListener l: listeners){
-			l.started(bodies);
-		}
-	}
-	
-	private void notifyStopped(){
-		for (pcd.ass01.view.ActionListener l: listeners){
-			l.stopped();
-		}
-	}
+
 	
 	public class VisualizerPanel extends JPanel implements KeyListener {
 	    

@@ -17,12 +17,13 @@ public class ConcurrentBodySimulation {
 		SimulationView viewer = new SimulationView(620,620);
 		
 		StartSynch synch = new StartSynch();
-		
-    	Simulator sim = new Simulator(Optional.of(viewer), Optional.of(synch));
-        //sim.execute(50000);
+		Controller controller = new Controller();
+    	Simulator sim = new Simulator(Optional.of(viewer), Optional.of(synch), controller);
         
-        Controller controller = new Controller();
+        
+        
         viewer.addListener(controller);
         viewer.display();
+        sim.execute(50000);
     }
 }

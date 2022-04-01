@@ -9,10 +9,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import pcd.ass01.utils.Body;
-import pcd.ass01.view.Flag;
-import pcd.ass01.view.TaskBag;
-import pcd.ass01.view.TaskCompletionLatch;
 
 public class MonitorImpl<Item> implements IMasterWorkers<Item>, IProducerConsumer<Item>, IBarrier{
 

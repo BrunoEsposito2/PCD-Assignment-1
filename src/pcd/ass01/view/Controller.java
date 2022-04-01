@@ -2,19 +2,20 @@ package pcd.ass01.view;
 
 public class Controller implements ActionListener {
 	
-	private Flag stopFlag;
+	public ViewMonitor m;
 	
 	public Controller() {
-		this.stopFlag = new Flag();
+		this.m = new ViewMonitor();
 	}
 
 	@Override
 	public void started() {
-		this.stopFlag.reset();
+		this.m.start();
 	}
 
 	@Override
 	public void stopped() {
-		this.stopFlag.set();
+		this.m.stop();
+		//this.stopFlag.set();
 	}
 }

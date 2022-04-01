@@ -18,7 +18,7 @@ public class CalculationsTest {
     
 	@BeforeEach
 	public void setUp() {
-		this.concurrentSimulator = new Simulator(Optional.empty(), Optional.empty(), Optional.empty());
+		this.concurrentSimulator = new Simulator(Optional.empty(), Optional.empty());
 		this.sequentialSimulator = new SequentialSimulator(Optional.empty());
 	}
 	

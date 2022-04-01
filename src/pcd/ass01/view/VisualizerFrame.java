@@ -74,12 +74,6 @@ public class VisualizerFrame extends JFrame implements ActionListener {
 		}
     };
     
-    public void updateText(final String s){
-		SwingUtilities.invokeLater(() -> {
-				state.setText(s);
-		});
-	}
-    
     public void addListener(pcd.ass01.view.ActionListener l) {
     	this.controller = l;
     }

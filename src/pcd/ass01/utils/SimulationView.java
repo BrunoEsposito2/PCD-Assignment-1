@@ -42,10 +42,6 @@ public class SimulationView {
 		}
     }
     
-    public void changeState(final String s){
-		frame.updateText(s);
-	}
-    
     public void addListener(ActionListener l) {
     	frame.addListener(l);
     }

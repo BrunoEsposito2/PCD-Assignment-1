@@ -2,7 +2,7 @@ package pcd.ass01.seq;
 
 import java.util.Optional;
 
-import pcd.ass01.utils.SimulationView;
+import pcd.ass01.seq.SimulationView;
 
 /**
  * Bodies simulation - legacy code: sequential, unstructured

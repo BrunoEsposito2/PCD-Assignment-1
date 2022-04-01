@@ -1,7 +1,6 @@
 package pcd.ass01.conc;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Optional;
@@ -14,12 +13,11 @@ import pcd.ass01.utils.P2d;
 import pcd.ass01.utils.SimulationView;
 import pcd.ass01.utils.V2d;
 import pcd.ass01.view.Controller;
-import pcd.ass01.view.Flag;
 import pcd.ass01.view.StartSynch;
 
 public class Simulator {
 	
-	private Controller c;
+	private Optional<Controller> controller;
 	
 	private Optional<SimulationView> viewer;
 
@@ -59,8 +57,8 @@ public class Simulator {
 	
 	private Optional<StartSynch> synch;
 
-	public Simulator(Optional<SimulationView> viewer, Optional<StartSynch> sync, Controller c) {
-		this.c = c;
+	public Simulator(final Optional<SimulationView> viewer, final Optional<StartSynch> sync, final Optional<Controller> c) {
+		this.controller = c;
 		this.viewer = viewer;
 		this.synch = sync;
 		
@@ -69,11 +67,10 @@ public class Simulator {
 		this.vt = 0;
 			
 		/* initializing boundary and bodies */
-		
-		//testBodySet1_two_bodies();
+		testBodySet1_two_bodies();
 		 //testBodySet2_three_bodies();
 		// testBodySet3_some_bodies();
-		 testBodySet4_many_bodies();
+		 //testBodySet4_many_bodies();
 		 
 		 this.initialBodies = new ArrayList<>();
 		 Iterator<Body> iterator = bodies.iterator();
@@ -99,29 +96,34 @@ public class Simulator {
 		this.initialize_position_calculators();
 	}
 	
-	public void execute(long nSteps) {
+	public void execute(final long nSteps) {
 
-		try {
-			c.m.waitStart();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if(this.controller.isPresent()) {
+			try {
+				this.controller.get().m.waitStart();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		long iter = 0;
 		
 		/* simulation loop */
 		while (iter < nSteps) {
-		    if(c.m.evaluateReset()) {
-		    	this.reset();
-		    	iter = 0;
-		    	try {
-					c.m.waitStart();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-		    }
+			if(this.controller.isPresent()) {
+			    if(this.controller.get().m.evaluateReset()) {
+			    	this.reset();
+			    	iter = 0;
+			    	try {
+						this.controller.get().m.waitStart();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+			    }
+			}
+
 			try {
 				monitor.startAndWaitWorkers(Collections.unmodifiableList(this.bodies));
 				
@@ -139,6 +141,10 @@ public class Simulator {
 		}
 	}
 	
+	public ArrayList<Body> getBodies() {
+		return this.bodies;
+	}
+	
 	private void reset() {
 		 this.bodies.clear();
 		 Iterator<Body> iterator = initialBodies.iterator();
@@ -147,8 +153,6 @@ public class Simulator {
 	        }
 		vt = 0;
 	}
-	
-	
 	
 	private void initialize_position_calculators() {
 		for(int i = 0; i < this.nrPosCalculators; i++) {

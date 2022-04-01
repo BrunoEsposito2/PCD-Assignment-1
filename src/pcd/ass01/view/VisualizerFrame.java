@@ -77,6 +77,11 @@ public class VisualizerFrame extends JFrame implements ActionListener {
     public void addListener(pcd.ass01.view.ActionListener l) {
     	this.controller = l;
     }
+    
+    public void updateState(final String state) {
+    	switchButtons();
+    	this.state.setText(state);
+    }
 
 	@Override
 	public void actionPerformed(ActionEvent e) {

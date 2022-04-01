@@ -29,7 +29,11 @@ public class SimulationView {
     }
         
     public void update(ArrayList<Body> bodies, double vt, long iter, Boundary bounds){
- 	   frame.display(bodies, vt, iter, bounds); 
+    	frame.display(bodies, vt, iter, bounds); 
+    }
+    
+    public void updateState(final String state) {
+    	frame.updateState(state);
     }
     
     public void display() {

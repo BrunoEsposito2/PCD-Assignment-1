@@ -20,6 +20,6 @@ public class ConcurrentBodySimulation {
                 
         viewer.addListener(controller);
         viewer.display();
-        sim.execute(50000);
+        sim.execute(1000);
     }
 }

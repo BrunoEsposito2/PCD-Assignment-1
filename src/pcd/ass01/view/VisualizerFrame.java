@@ -78,7 +78,7 @@ public class VisualizerFrame extends JFrame implements ActionListener {
     	this.controller = l;
     }
     
-    public void updateState(final String state) {
+    public void updateSimulationState(final String state) {
     	switchButtons();
     	this.state.setText(state);
     }

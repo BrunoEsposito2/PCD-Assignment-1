@@ -28,12 +28,12 @@ public class SimulationView {
     	frame = new VisualizerFrame(w, h);
     }
         
-    public void update(ArrayList<Body> bodies, double vt, long iter, Boundary bounds){
+    public void updateView(ArrayList<Body> bodies, double vt, long iter, Boundary bounds){
     	frame.display(bodies, vt, iter, bounds); 
     }
     
     public void updateState(final String state) {
-    	frame.updateState(state);
+    	frame.updateSimulationState(state);
     }
     
     public void display() {

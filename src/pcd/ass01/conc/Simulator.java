@@ -133,7 +133,7 @@ public class Simulator {
 			
 			
 			/* display current stage */
-			if(viewer.isPresent()) viewer.get().update(bodies, vt, iter, bounds);
+			if(viewer.isPresent()) viewer.get().updateView(bodies, vt, iter, bounds);
 		}
 		/* change of GUI and button states when simulation ends without user interaction on the GUI */
 		if(viewer.isPresent()) {

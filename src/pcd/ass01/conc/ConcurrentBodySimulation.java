@@ -20,8 +20,6 @@ public class ConcurrentBodySimulation {
 		Controller controller = new Controller();
     	Simulator sim = new Simulator(Optional.of(viewer), Optional.of(synch), controller);
         
-        
-        
         viewer.addListener(controller);
         viewer.display();
         sim.execute(50000);

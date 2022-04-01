@@ -1,5 +1,6 @@
 package pcd.ass01.utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 import javax.swing.SwingUtilities;
@@ -32,9 +33,13 @@ public class SimulationView {
     }
     
     public void display() {
-        SwingUtilities.invokeLater(() -> {
-        	frame.setVisible(true);
-        });
+        try {
+			SwingUtilities.invokeAndWait(() -> {
+				frame.setVisible(true);
+			});
+		} catch (InvocationTargetException | InterruptedException e) {
+			e.printStackTrace();
+		}
     }
     
     public void changeState(final String s){

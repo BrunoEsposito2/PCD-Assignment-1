@@ -103,7 +103,6 @@ public class Simulator {
 
 		try {
 			c.m.waitStart();
-			System.out.println("cccc");
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -118,7 +117,6 @@ public class Simulator {
 		    	iter = 0;
 		    	try {
 					c.m.waitStart();
-					System.out.println("cccc");
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

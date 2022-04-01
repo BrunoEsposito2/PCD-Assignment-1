@@ -13,7 +13,6 @@ import pcd.ass01.utils.P2d;
 import pcd.ass01.utils.SimulationView;
 import pcd.ass01.utils.V2d;
 import pcd.ass01.view.Controller;
-import pcd.ass01.view.StartSynch;
 
 public class Simulator {
 	
@@ -54,13 +53,10 @@ public class Simulator {
 	/*Lists of producers and consumers*/
 	private ArrayList<VelCalculator> velCalculators;
 	private ArrayList<PosCalculator> posCalculators;
-	
-	private Optional<StartSynch> synch;
 
-	public Simulator(final Optional<SimulationView> viewer, final Optional<StartSynch> sync, final Optional<Controller> c) {
+	public Simulator(final Optional<SimulationView> viewer, final Optional<Controller> c) {
 		this.controller = c;
 		this.viewer = viewer;
-		this.synch = sync;
 		
 		/* init virtual time */
 		this.dt = 0.001;

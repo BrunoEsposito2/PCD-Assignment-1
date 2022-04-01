@@ -2,11 +2,11 @@ package pcd.ass01.seq;
 
 import java.util.*;
 
-import pcd.ass01.utils.Body;
-import pcd.ass01.utils.Boundary;
-import pcd.ass01.utils.P2d;
-import pcd.ass01.utils.SimulationView;
-import pcd.ass01.utils.V2d;
+import pcd.ass01.seq.Body;
+import pcd.ass01.seq.Boundary;
+import pcd.ass01.seq.P2d;
+import pcd.ass01.seq.SimulationView;
+import pcd.ass01.seq.V2d;
 
 public class SequentialSimulator {
 
@@ -29,8 +29,8 @@ public class SequentialSimulator {
 
 		/* initializing boundary and bodies */
 
-		//testBodySet1_two_bodies();
-		 testBodySet2_three_bodies();
+		testBodySet1_two_bodies();
+		 //testBodySet2_three_bodies();
 		// testBodySet3_some_bodies();
 		//testBodySet4_many_bodies();
 	}

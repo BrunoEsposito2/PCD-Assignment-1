@@ -4,21 +4,38 @@ EXTENDS TLC, Integers, Sequences
 CONSTANTS MaxQueueSize
 
 (*--algorithm message_queue
-variables queue = <<>>, toProduce = 0, toProcess = 0, barrier = FALSE;
+variables queue = <<>>, toProduce = 0, toProcess = 0, 
+          prodHits = 0, nProd = 2, signalProdBarrier = FALSE, signalContinue = FALSE, 
+          barrier = FALSE;
 
 define
   BoundedQueue == Len(queue) <= MaxQueueSize 
 end define;
 
+macro synchMasterWorker() begin
+    toProduce := 2;
+    prodHits := prodHits + 1;
+    if prodHits = nProd then 
+        print "a process hit barrier"
+        signalProdBarrier := TRUE;
+        prodHits := 0;
+    else
+        print "all processes hit the barrier: signalAll"
+        await signalProdBarrier = TRUE;
+        signalProdBarrier := FALSE;
+    end if;
+end macro;
+    
 process master \in { "master" }
 begin MainLoop:
   while TRUE do
-    \* await toProcess = 0 /\ toProduce = 0
-    p:
-        if toProcess = 0 /\ toProduce = 0 then
-            toProcess := 4;
-            toProduce := 2;
-        end if; 
+      signalContinue := FALSE;
+    startAndWaitWorkers:
+        toProcess := 4;
+        synchMasterWorker:
+            synchMasterWorker();
+        await signalContinue = TRUE;
+
   end while;
 end process;
 
@@ -55,7 +72,7 @@ begin Consume:
             print x;
             toProcess := toProcess - 1;
         else
-            toProcess :=  0;
+            signalContinue := TRUE;
             print "toProcess = 0";
         \*    barrier := TRUE;
         end if;

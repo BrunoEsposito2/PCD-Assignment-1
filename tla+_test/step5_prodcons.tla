@@ -4,7 +4,7 @@ EXTENDS TLC, Integers, Sequences
 CONSTANTS MaxQueueSize
 
 (*--algorithm message_queue
-variables queue = <<>>, toProduce = 0, toProcess = 0, prodHits = 0, nProd = 2, signalProdBarrier = FALSE, signalContinue = FALSE, barrier = FALSE;
+variables queue = <<>>, toProduce = 0, toProcess = 0, prodHits = 0, nProd = 2, signalProdBarrier = FALSE, signalContinue = FALSE, signalToWork = FALSE, notAllInBarrier = FALSE;
 
 define
   BoundedQueue == Len(queue) <= MaxQueueSize 
@@ -23,11 +23,12 @@ begin MainLoop:
             signalProdBarrier := TRUE;
             l1: prodHits := 0;
         else
-            print "a process hit barrier";
+            print "a process hit barrier MASTER";
             await signalProdBarrier = TRUE;
-            signalProdBarrier := FALSE;
         end if;
+        signalToWork := TRUE;
     l2: await signalContinue = TRUE;
+    notAllInBarrier := TRUE;
   end while;
 end process;
 
@@ -36,16 +37,14 @@ variables x = 0;
 begin Produce:
   while TRUE do
   synchMasterWorker:
-        toProduce := 2;
         prodHits := prodHits + 1;
         if prodHits = nProd then 
             print "all processes hit the barrier signalAll";
             signalProdBarrier := TRUE;
             l3: prodHits := 0;
         else
-            print "a process hit barrier";
+            print "a process hit barrier PROD";
             await signalProdBarrier = TRUE;
-            signalProdBarrier := FALSE;
         end if;
   produce:
     await toProduce > 0;
@@ -75,6 +74,7 @@ begin Consume:
         if toProcess > 0 then
             print x;
             toProcess := toProcess - 1;
+            \*signalContinue := FALSE;
         else
             signalContinue := TRUE;
             print "toProcess = 0";
@@ -84,9 +84,8 @@ begin Consume:
 end process;
 end algorithm;*)
 
-\* BEGIN TRANSLATION (chksum(pcal) = "d603b1d3" /\ chksum(tla) = "4611aa50")
+\* BEGIN TRANSLATION (chksum(pcal) = "1a1124db" /\ chksum(tla) = "a6fe1129")
 \* Label synchMasterWorker of process master at line 19 col 9 changed to synchMasterWorker_
-\* Label l1 of process master at line 24 col 17 changed to l1_
 \* Process variable x of process producer at line 35 col 11 changed to x_
 VARIABLES queue, toProduce, toProcess, prodHits, nProd, signalProdBarrier, 
           signalContinue, barrier, pc
@@ -131,7 +130,7 @@ synchMasterWorker_(self) == /\ pc[self] = "synchMasterWorker_"
                             /\ IF prodHits' = nProd
                                   THEN /\ PrintT("all processes hit the barrier signalAll")
                                        /\ signalProdBarrier' = TRUE
-                                       /\ pc' = [pc EXCEPT ![self] = "l1_"]
+                                       /\ pc' = [pc EXCEPT ![self] = "l1"]
                                   ELSE /\ PrintT("a process hit barrier")
                                        /\ signalProdBarrier = TRUE
                                        /\ signalProdBarrier' = FALSE
@@ -139,11 +138,11 @@ synchMasterWorker_(self) == /\ pc[self] = "synchMasterWorker_"
                             /\ UNCHANGED << queue, toProcess, nProd, 
                                             signalContinue, barrier, x_, x >>
 
-l1_(self) == /\ pc[self] = "l1_"
-             /\ prodHits' = 0
-             /\ pc' = [pc EXCEPT ![self] = "l2"]
-             /\ UNCHANGED << queue, toProduce, toProcess, nProd, 
-                             signalProdBarrier, signalContinue, barrier, x_, x >>
+l1(self) == /\ pc[self] = "l1"
+            /\ prodHits' = 0
+            /\ pc' = [pc EXCEPT ![self] = "l2"]
+            /\ UNCHANGED << queue, toProduce, toProcess, nProd, 
+                            signalProdBarrier, signalContinue, barrier, x_, x >>
 
 l2(self) == /\ pc[self] = "l2"
             /\ signalContinue = TRUE
@@ -151,7 +150,7 @@ l2(self) == /\ pc[self] = "l2"
             /\ UNCHANGED << queue, toProduce, toProcess, prodHits, nProd, 
                             signalProdBarrier, signalContinue, barrier, x_, x >>
 
-master(self) == MainLoop(self) \/ synchMasterWorker_(self) \/ l1_(self)
+master(self) == MainLoop(self) \/ synchMasterWorker_(self) \/ l1(self)
                    \/ l2(self)
 
 Produce(self) == /\ pc[self] = "Produce"
@@ -161,20 +160,19 @@ Produce(self) == /\ pc[self] = "Produce"
                                  x_, x >>
 
 synchMasterWorker(self) == /\ pc[self] = "synchMasterWorker"
-                           /\ toProduce' = 2
                            /\ prodHits' = prodHits + 1
                            /\ IF prodHits' = nProd
                                  THEN /\ PrintT("all processes hit the barrier signalAll")
                                       /\ signalProdBarrier' = TRUE
-                                      /\ pc' = [pc EXCEPT ![self] = "l1"]
+                                      /\ pc' = [pc EXCEPT ![self] = "l3"]
                                  ELSE /\ PrintT("a process hit barrier")
                                       /\ signalProdBarrier = TRUE
                                       /\ signalProdBarrier' = FALSE
                                       /\ pc' = [pc EXCEPT ![self] = "produce"]
-                           /\ UNCHANGED << queue, toProcess, nProd, 
+                           /\ UNCHANGED << queue, toProduce, toProcess, nProd, 
                                            signalContinue, barrier, x_, x >>
 
-l1(self) == /\ pc[self] = "l1"
+l3(self) == /\ pc[self] = "l3"
             /\ prodHits' = 0
             /\ pc' = [pc EXCEPT ![self] = "produce"]
             /\ UNCHANGED << queue, toProduce, toProcess, nProd, 
@@ -199,7 +197,7 @@ put(self) == /\ pc[self] = "put"
              /\ UNCHANGED << toProduce, toProcess, prodHits, nProd, 
                              signalProdBarrier, signalContinue, barrier, x_, x >>
 
-producer(self) == Produce(self) \/ synchMasterWorker(self) \/ l1(self)
+producer(self) == Produce(self) \/ synchMasterWorker(self) \/ l3(self)
                      \/ produce(self) \/ put(self)
 
 Consume(self) == /\ pc[self] = "Consume"
@@ -221,7 +219,7 @@ consume(self) == /\ pc[self] = "consume"
                  /\ IF toProcess > 0
                        THEN /\ PrintT(x[self])
                             /\ toProcess' = toProcess - 1
-                            /\ UNCHANGED signalContinue
+                            /\ signalContinue' = FALSE
                        ELSE /\ signalContinue' = TRUE
                             /\ PrintT("toProcess = 0")
                             /\ UNCHANGED toProcess
@@ -241,7 +239,7 @@ Spec == Init /\ [][Next]_vars
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Apr 03 15:36:45 CEST 2022 by Cecilia
+\* Last modified Sun Apr 03 16:31:30 CEST 2022 by Cecilia
 \* Last modified Sat Apr 02 17:06:18 CEST 2022 by Camillo
 \* Last modified Sun Mar 28 15:40:26 CEST 2021 by aricci
 \* Created Sun Mar 28 08:34:06 CEST 2021 by aricci

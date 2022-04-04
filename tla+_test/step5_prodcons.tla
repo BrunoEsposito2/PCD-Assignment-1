@@ -4,10 +4,10 @@ EXTENDS TLC, Integers, Sequences
 CONSTANTS MaxQueueSize
 
 (*--algorithm message_queue
-variables queue = <<>>, toProduce = 2, toProcess = 2, nReturned = 0,
+variables queue = <<>>, toProduce = 2,
         nWorkersHits = 0, nWorkers = 2, isAllowedToStart = FALSE, 
         isAllowedToContinue = FALSE, masterDone = FALSE,
-        notAllInBarrier = FALSE, nConsHits = 0, allowedToContinue = FALSE;
+        inBarrier = FALSE, nConsHits = 0, allowedToContinue = FALSE;
 
 define
   BoundedQueue == Len(queue) <= MaxQueueSize
@@ -23,12 +23,12 @@ begin MainLoop:
                 isAllowedToStart := TRUE;
                 nWorkersHits := 0;
         end if;
-    l4: 
+    l4:
         print "in l4";
-        if isAllowedToContinue = TRUE then
-            nReturned := 0;
+        if isAllowedToContinue = TRUE then      \* riparte il meccanismo
             nConsHits := 0;
-            notAllInBarrier := TRUE;
+            inBarrier := FALSE;                 \* non tutti i consumatori in barriera
+            isAllowedToContinue := FALSE;   
         end if;
   end while;
 end process;
@@ -37,23 +37,24 @@ process producer \in { "prod1", "prod2" }
 variables x = 0;
 begin Produce:
   while TRUE do
-  synchMasterWorkerPROD:
+    synchMasterWorkerPROD:
         nWorkersHits := nWorkersHits + 1;
         print "a PROD process hit barrier";
         print nWorkersHits;
-  if isAllowedToStart = TRUE then
-  produce:
-    x := 3 + 4;
-    print x;
-    toProduce := toProduce - 1; 
-  produceContinue:  
-    await toProduce <= 0;
-    print "toProduce = 0";
-    toProduce := 2;
-  put:
-    await Len(queue) < MaxQueueSize;
-    queue := Append(queue, x);
-  end if;
+    if isAllowedToStart = TRUE then
+      produce:
+        x := 3 + 4;
+        print "print produced";
+        toProduce := toProduce - 1;
+        if toProduce = 0 then
+            produceContinue:
+                print "toProduce = 0";
+                toProduce := 2;
+        end if;
+      put:
+        await Len(queue) < MaxQueueSize;
+        queue := Append(queue, x);
+     end if;
   end while;
 end process;
 
@@ -65,53 +66,46 @@ begin Consume:
         await queue /= <<>>;
         x := Head(queue);
         queue := Tail(queue);
-        nConsHits := nConsHits + 1;
-    consume:
-        print x;
-        toProcess := toProcess - 1;
-    consumeContinue:
-        await toProcess <= 0;
-        print "toProcess = 0";
-        toProcess := 2;
-        isAllowedToContinue := TRUE;
-    evaluateSynchronize:
         if nConsHits < 2 then
-            await notAllInBarrier = TRUE;   
-        else
-            isAllowedToContinue := TRUE;                
+            consume:
+                print x;
+                nConsHits := nConsHits + 1;
+        elsif nConsHits = 2 then 
+            evaluateInBarrier:
+                nConsHits := 0;
+                inBarrier := TRUE;      \* tutti i consumatori arrivati in barriera
+                isAllowedToContinue := TRUE;            \* fa ripartire il meccanismo dal main    
         end if;
   end while;
 end process;
 end algorithm;*)
 
-\* BEGIN TRANSLATION (chksum(pcal) = "f9988a37" /\ chksum(tla) = "20af7f91")
+\* BEGIN TRANSLATION (chksum(pcal) = "f1ef638c" /\ chksum(tla) = "ad62eaf3")
 \* Process variable x of process producer at line 37 col 11 changed to x_
-VARIABLES queue, toProduce, toProcess, nReturned, nWorkersHits, nWorkers, 
-          isAllowedToStart, isAllowedToContinue, masterDone, notAllInBarrier, 
-          nConsHits, allowedToContinue, pc
+VARIABLES queue, toProduce, nWorkersHits, nWorkers, isAllowedToStart, 
+          isAllowedToContinue, masterDone, inBarrier, nConsHits, 
+          allowedToContinue, pc
 
 (* define statement *)
 BoundedQueue == Len(queue) <= MaxQueueSize
 
 VARIABLES x_, x
 
-vars == << queue, toProduce, toProcess, nReturned, nWorkersHits, nWorkers, 
-           isAllowedToStart, isAllowedToContinue, masterDone, notAllInBarrier, 
-           nConsHits, allowedToContinue, pc, x_, x >>
+vars == << queue, toProduce, nWorkersHits, nWorkers, isAllowedToStart, 
+           isAllowedToContinue, masterDone, inBarrier, nConsHits, 
+           allowedToContinue, pc, x_, x >>
 
 ProcSet == {"master"} \cup ({ "prod1", "prod2" }) \cup ({ "cons1", "cons2" })
 
 Init == (* Global variables *)
         /\ queue = <<>>
         /\ toProduce = 2
-        /\ toProcess = 2
-        /\ nReturned = 0
         /\ nWorkersHits = 0
         /\ nWorkers = 2
         /\ isAllowedToStart = FALSE
         /\ isAllowedToContinue = FALSE
         /\ masterDone = FALSE
-        /\ notAllInBarrier = FALSE
+        /\ inBarrier = FALSE
         /\ nConsHits = 0
         /\ allowedToContinue = FALSE
         (* Process producer *)
@@ -124,53 +118,49 @@ Init == (* Global variables *)
 
 MainLoop == /\ pc["master"] = "MainLoop"
             /\ pc' = [pc EXCEPT !["master"] = "synchMasterWorkerMASTER"]
-            /\ UNCHANGED << queue, toProduce, toProcess, nReturned, 
-                            nWorkersHits, nWorkers, isAllowedToStart, 
-                            isAllowedToContinue, masterDone, notAllInBarrier, 
-                            nConsHits, allowedToContinue, x_, x >>
+            /\ UNCHANGED << queue, toProduce, nWorkersHits, nWorkers, 
+                            isAllowedToStart, isAllowedToContinue, masterDone, 
+                            inBarrier, nConsHits, allowedToContinue, x_, x >>
 
 synchMasterWorkerMASTER == /\ pc["master"] = "synchMasterWorkerMASTER"
                            /\ IF nWorkersHits = nWorkers
                                  THEN /\ PrintT("all processes hit the barrier signalAll")
                                       /\ pc' = [pc EXCEPT !["master"] = "l7"]
                                  ELSE /\ pc' = [pc EXCEPT !["master"] = "l4"]
-                           /\ UNCHANGED << queue, toProduce, toProcess, 
-                                           nReturned, nWorkersHits, nWorkers, 
-                                           isAllowedToStart, 
+                           /\ UNCHANGED << queue, toProduce, nWorkersHits, 
+                                           nWorkers, isAllowedToStart, 
                                            isAllowedToContinue, masterDone, 
-                                           notAllInBarrier, nConsHits, 
+                                           inBarrier, nConsHits, 
                                            allowedToContinue, x_, x >>
 
 l7 == /\ pc["master"] = "l7"
       /\ isAllowedToStart' = TRUE
       /\ nWorkersHits' = 0
       /\ pc' = [pc EXCEPT !["master"] = "l4"]
-      /\ UNCHANGED << queue, toProduce, toProcess, nReturned, nWorkers, 
-                      isAllowedToContinue, masterDone, notAllInBarrier, 
-                      nConsHits, allowedToContinue, x_, x >>
+      /\ UNCHANGED << queue, toProduce, nWorkers, isAllowedToContinue, 
+                      masterDone, inBarrier, nConsHits, allowedToContinue, x_, 
+                      x >>
 
 l4 == /\ pc["master"] = "l4"
       /\ PrintT("in l4")
       /\ IF isAllowedToContinue = TRUE
-            THEN /\ nReturned' = 0
-                 /\ nConsHits' = 0
-                 /\ notAllInBarrier' = TRUE
+            THEN /\ nConsHits' = 0
+                 /\ inBarrier' = FALSE
+                 /\ isAllowedToContinue' = FALSE
             ELSE /\ TRUE
-                 /\ UNCHANGED << nReturned, notAllInBarrier, nConsHits >>
+                 /\ UNCHANGED << isAllowedToContinue, inBarrier, nConsHits >>
       /\ pc' = [pc EXCEPT !["master"] = "MainLoop"]
-      /\ UNCHANGED << queue, toProduce, toProcess, nWorkersHits, nWorkers, 
-                      isAllowedToStart, isAllowedToContinue, masterDone, 
-                      allowedToContinue, x_, x >>
+      /\ UNCHANGED << queue, toProduce, nWorkersHits, nWorkers, 
+                      isAllowedToStart, masterDone, allowedToContinue, x_, x >>
 
 master == MainLoop \/ synchMasterWorkerMASTER \/ l7 \/ l4
 
 Produce(self) == /\ pc[self] = "Produce"
                  /\ pc' = [pc EXCEPT ![self] = "synchMasterWorkerPROD"]
-                 /\ UNCHANGED << queue, toProduce, toProcess, nReturned, 
-                                 nWorkersHits, nWorkers, isAllowedToStart, 
-                                 isAllowedToContinue, masterDone, 
-                                 notAllInBarrier, nConsHits, allowedToContinue, 
-                                 x_, x >>
+                 /\ UNCHANGED << queue, toProduce, nWorkersHits, nWorkers, 
+                                 isAllowedToStart, isAllowedToContinue, 
+                                 masterDone, inBarrier, nConsHits, 
+                                 allowedToContinue, x_, x >>
 
 synchMasterWorkerPROD(self) == /\ pc[self] = "synchMasterWorkerPROD"
                                /\ nWorkersHits' = nWorkersHits + 1
@@ -179,102 +169,85 @@ synchMasterWorkerPROD(self) == /\ pc[self] = "synchMasterWorkerPROD"
                                /\ IF isAllowedToStart = TRUE
                                      THEN /\ pc' = [pc EXCEPT ![self] = "produce"]
                                      ELSE /\ pc' = [pc EXCEPT ![self] = "Produce"]
-                               /\ UNCHANGED << queue, toProduce, toProcess, 
-                                               nReturned, nWorkers, 
+                               /\ UNCHANGED << queue, toProduce, nWorkers, 
                                                isAllowedToStart, 
                                                isAllowedToContinue, masterDone, 
-                                               notAllInBarrier, nConsHits, 
+                                               inBarrier, nConsHits, 
                                                allowedToContinue, x_, x >>
 
 produce(self) == /\ pc[self] = "produce"
                  /\ x_' = [x_ EXCEPT ![self] = 3 + 4]
-                 /\ PrintT(x_'[self])
+                 /\ PrintT("print produced")
                  /\ toProduce' = toProduce - 1
-                 /\ pc' = [pc EXCEPT ![self] = "produceContinue"]
-                 /\ UNCHANGED << queue, toProcess, nReturned, nWorkersHits, 
-                                 nWorkers, isAllowedToStart, 
-                                 isAllowedToContinue, masterDone, 
-                                 notAllInBarrier, nConsHits, allowedToContinue, 
-                                 x >>
+                 /\ IF toProduce' = 0
+                       THEN /\ pc' = [pc EXCEPT ![self] = "produceContinue"]
+                       ELSE /\ pc' = [pc EXCEPT ![self] = "put"]
+                 /\ UNCHANGED << queue, nWorkersHits, nWorkers, 
+                                 isAllowedToStart, isAllowedToContinue, 
+                                 masterDone, inBarrier, nConsHits, 
+                                 allowedToContinue, x >>
 
 produceContinue(self) == /\ pc[self] = "produceContinue"
-                         /\ toProduce <= 0
                          /\ PrintT("toProduce = 0")
                          /\ toProduce' = 2
                          /\ pc' = [pc EXCEPT ![self] = "put"]
-                         /\ UNCHANGED << queue, toProcess, nReturned, 
-                                         nWorkersHits, nWorkers, 
+                         /\ UNCHANGED << queue, nWorkersHits, nWorkers, 
                                          isAllowedToStart, isAllowedToContinue, 
-                                         masterDone, notAllInBarrier, 
-                                         nConsHits, allowedToContinue, x_, x >>
+                                         masterDone, inBarrier, nConsHits, 
+                                         allowedToContinue, x_, x >>
 
 put(self) == /\ pc[self] = "put"
              /\ Len(queue) < MaxQueueSize
              /\ queue' = Append(queue, x_[self])
              /\ pc' = [pc EXCEPT ![self] = "Produce"]
-             /\ UNCHANGED << toProduce, toProcess, nReturned, nWorkersHits, 
-                             nWorkers, isAllowedToStart, isAllowedToContinue, 
-                             masterDone, notAllInBarrier, nConsHits, 
-                             allowedToContinue, x_, x >>
+             /\ UNCHANGED << toProduce, nWorkersHits, nWorkers, 
+                             isAllowedToStart, isAllowedToContinue, masterDone, 
+                             inBarrier, nConsHits, allowedToContinue, x_, x >>
 
 producer(self) == Produce(self) \/ synchMasterWorkerPROD(self)
                      \/ produce(self) \/ produceContinue(self) \/ put(self)
 
 Consume(self) == /\ pc[self] = "Consume"
                  /\ pc' = [pc EXCEPT ![self] = "get"]
-                 /\ UNCHANGED << queue, toProduce, toProcess, nReturned, 
-                                 nWorkersHits, nWorkers, isAllowedToStart, 
-                                 isAllowedToContinue, masterDone, 
-                                 notAllInBarrier, nConsHits, allowedToContinue, 
-                                 x_, x >>
+                 /\ UNCHANGED << queue, toProduce, nWorkersHits, nWorkers, 
+                                 isAllowedToStart, isAllowedToContinue, 
+                                 masterDone, inBarrier, nConsHits, 
+                                 allowedToContinue, x_, x >>
 
 get(self) == /\ pc[self] = "get"
              /\ queue /= <<>>
              /\ x' = [x EXCEPT ![self] = Head(queue)]
              /\ queue' = Tail(queue)
-             /\ nConsHits' = nConsHits + 1
-             /\ pc' = [pc EXCEPT ![self] = "consume"]
-             /\ UNCHANGED << toProduce, toProcess, nReturned, nWorkersHits, 
-                             nWorkers, isAllowedToStart, isAllowedToContinue, 
-                             masterDone, notAllInBarrier, allowedToContinue, 
-                             x_ >>
+             /\ IF nConsHits < 2
+                   THEN /\ pc' = [pc EXCEPT ![self] = "consume"]
+                   ELSE /\ IF nConsHits = 2
+                              THEN /\ pc' = [pc EXCEPT ![self] = "evaluateInBarrier"]
+                              ELSE /\ pc' = [pc EXCEPT ![self] = "Consume"]
+             /\ UNCHANGED << toProduce, nWorkersHits, nWorkers, 
+                             isAllowedToStart, isAllowedToContinue, masterDone, 
+                             inBarrier, nConsHits, allowedToContinue, x_ >>
 
 consume(self) == /\ pc[self] = "consume"
                  /\ PrintT(x[self])
-                 /\ toProcess' = toProcess - 1
-                 /\ pc' = [pc EXCEPT ![self] = "consumeContinue"]
-                 /\ UNCHANGED << queue, toProduce, nReturned, nWorkersHits, 
-                                 nWorkers, isAllowedToStart, 
-                                 isAllowedToContinue, masterDone, 
-                                 notAllInBarrier, nConsHits, allowedToContinue, 
-                                 x_, x >>
+                 /\ nConsHits' = nConsHits + 1
+                 /\ pc' = [pc EXCEPT ![self] = "Consume"]
+                 /\ UNCHANGED << queue, toProduce, nWorkersHits, nWorkers, 
+                                 isAllowedToStart, isAllowedToContinue, 
+                                 masterDone, inBarrier, allowedToContinue, x_, 
+                                 x >>
 
-consumeContinue(self) == /\ pc[self] = "consumeContinue"
-                         /\ toProcess <= 0
-                         /\ PrintT("toProcess = 0")
-                         /\ toProcess' = 2
-                         /\ isAllowedToContinue' = TRUE
-                         /\ pc' = [pc EXCEPT ![self] = "evaluateSynchronize"]
-                         /\ UNCHANGED << queue, toProduce, nReturned, 
-                                         nWorkersHits, nWorkers, 
-                                         isAllowedToStart, masterDone, 
-                                         notAllInBarrier, nConsHits, 
-                                         allowedToContinue, x_, x >>
-
-evaluateSynchronize(self) == /\ pc[self] = "evaluateSynchronize"
-                             /\ IF nConsHits < 2
-                                   THEN /\ notAllInBarrier = TRUE
-                                        /\ UNCHANGED isAllowedToContinue
-                                   ELSE /\ isAllowedToContinue' = TRUE
-                             /\ pc' = [pc EXCEPT ![self] = "Consume"]
-                             /\ UNCHANGED << queue, toProduce, toProcess, 
-                                             nReturned, nWorkersHits, nWorkers, 
-                                             isAllowedToStart, masterDone, 
-                                             notAllInBarrier, nConsHits, 
-                                             allowedToContinue, x_, x >>
+evaluateInBarrier(self) == /\ pc[self] = "evaluateInBarrier"
+                           /\ nConsHits' = 0
+                           /\ inBarrier' = TRUE
+                           /\ isAllowedToContinue' = TRUE
+                           /\ pc' = [pc EXCEPT ![self] = "Consume"]
+                           /\ UNCHANGED << queue, toProduce, nWorkersHits, 
+                                           nWorkers, isAllowedToStart, 
+                                           masterDone, allowedToContinue, x_, 
+                                           x >>
 
 consumer(self) == Consume(self) \/ get(self) \/ consume(self)
-                     \/ consumeContinue(self) \/ evaluateSynchronize(self)
+                     \/ evaluateInBarrier(self)
 
 Next == master
            \/ (\E self \in { "prod1", "prod2" }: producer(self))
@@ -286,8 +259,8 @@ Spec == Init /\ [][Next]_vars
 
 =============================================================================
 \* Modification History
+\* Last modified Mon Apr 04 11:48:53 CEST 2022 by Cecilia
 \* Last modified Mon Apr 04 11:03:27 CEST 2022 by bruno
-\* Last modified Sun Apr 03 16:31:30 CEST 2022 by Cecilia
 \* Last modified Sat Apr 02 17:06:18 CEST 2022 by Camillo
 \* Last modified Sun Mar 28 15:40:26 CEST 2021 by aricci
 \* Created Sun Mar 28 08:34:06 CEST 2021 by aricci

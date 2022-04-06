@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import pcd.ass01.conc.Simulator;
 import pcd.ass01.seq.SequentialSimulator;
 
+// test with only 2 or 3 bodies changing Simulator and SequentialSimulator
 public class CalculationsTest {
 	
 	private Simulator concurrentSimulator;
@@ -17,7 +18,7 @@ public class CalculationsTest {
     
 	@BeforeEach
 	public void setUp() {
-		this.concurrentSimulator = new Simulator(Optional.empty());
+		this.concurrentSimulator = new Simulator(Optional.empty(), Optional.empty());
 		this.sequentialSimulator = new SequentialSimulator(Optional.empty());
 	}
 	
@@ -53,12 +54,12 @@ public class CalculationsTest {
 		if(concSimulator.getBodies().size() == seqSimulator.getBodies().size()) {
 			for(int i = 0; i < concSimulator.getBodies().size(); i++) {
 				// check position calculation accuracy
-				assertEquals(concSimulator.getBodies().get(i).getPos().getX(), seqSimulator.getBodies().get(i).getPos().getX(), 0.01);
-				assertEquals(concSimulator.getBodies().get(i).getPos().getY(), seqSimulator.getBodies().get(i).getPos().getY(), 0.01);
+				assertEquals(concSimulator.getBodies().get(i).getPos().getX(), seqSimulator.getBodies().get(i).getPos().getX(), 0.00001);
+				assertEquals(concSimulator.getBodies().get(i).getPos().getY(), seqSimulator.getBodies().get(i).getPos().getY(), 0.00001);
 				
 				// check velocity calculation accuracy
-				assertEquals(concSimulator.getBodies().get(i).getVel().getX(), seqSimulator.getBodies().get(i).getVel().getX(), 0.01);
-				assertEquals(concSimulator.getBodies().get(i).getVel().getY(), seqSimulator.getBodies().get(i).getVel().getY(), 0.01);
+				assertEquals(concSimulator.getBodies().get(i).getVel().getX(), seqSimulator.getBodies().get(i).getVel().getX(), 0.00001);
+				assertEquals(concSimulator.getBodies().get(i).getVel().getY(), seqSimulator.getBodies().get(i).getVel().getY(), 0.00001);
 			}
 		}
 	} 

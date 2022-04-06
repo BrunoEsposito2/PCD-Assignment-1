@@ -9,7 +9,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import pcd.ass01.utils.Body;
 
 public class SynchronizedPipelineMonitor<Item> implements IMasterWorkers<Item>, IProducerConsumer<Item>, IBarrier{
 
@@ -80,6 +79,7 @@ public class SynchronizedPipelineMonitor<Item> implements IMasterWorkers<Item>, 
 	public void startAndWaitWorkers(List<Item> rol) throws InterruptedException {
 		try {
 			mutex.lock();
+			
 			this.readOnlyList = rol;
 			
 			this.synchMasterWorker();

@@ -4,19 +4,19 @@ import java.util.List;
 
 import pcd.ass01.conc.patterns.AbstractWPWithBarrier;
 import pcd.ass01.conc.patterns.AbstractWorkerProducer;
-import pcd.ass01.conc.patterns.MonitorImpl;
+import pcd.ass01.conc.patterns.SynchronizedPipelineMonitor;
 import pcd.ass01.utils.Body;
 import pcd.ass01.utils.NotImplementedException;
 import pcd.ass01.utils.V2d;
 
-public class VelCalculator extends AbstractWPWithBarrier<Body, MonitorImpl<Body>> {
+public class VelCalculator extends AbstractWPWithBarrier<Body, SynchronizedPipelineMonitor<Body>> {
 
 	//the total list of bodies of the simulation
     private List<Body> bodiesView;
     
     private final double dt;
     
-	public VelCalculator(MonitorImpl<Body> monitorMW, int from, int to, double dt) {
+	public VelCalculator(SynchronizedPipelineMonitor<Body> monitorMW, int from, int to, double dt) {
 		super(monitorMW);
 		this.dt = dt;
 		this.addResourceInitParameter(from);

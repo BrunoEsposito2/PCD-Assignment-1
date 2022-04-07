@@ -17,6 +17,8 @@ variables queue = <<>>,
 
 define
   BoundedQueue == Len(queue) <= MaxQueueSize
+  WorkersHitsInRangeInvariant == (nWorkersHits >= 0) /\ (nWorkersHits <= N_WORKERS_TO_WAIT)
+  ProperFinalWorkersHitsValue == <>(nWorkersHits = 0 \/ nWorkersHits = 1 \/ nWorkersHits = 2)
   MutualExclusionProd == []~(pc["prod1"] = "put" /\ pc["prod2"] = "put")
   MutualExclusionCons == []~(pc["cons1"] = "take" /\ pc["cons2"] = "take")
 end define;
@@ -82,13 +84,15 @@ begin Consume:
 end process;
 end algorithm;*)
 
-\* BEGIN TRANSLATION (chksum(pcal) = "54adc559" /\ chksum(tla) = "d3ba90b3")
-\* Process variable body of process producer at line 43 col 10 changed to body_
+\* BEGIN TRANSLATION (chksum(pcal) = "d0954027" /\ chksum(tla) = "99c61ea9")
+\* Process variable body of process producer at line 45 col 10 changed to body_
 VARIABLES queue, nWorkersHits, areAllowedToStart, startMaster, 
           N_WORKERS_TO_WAIT, pc
 
 (* define statement *)
 BoundedQueue == Len(queue) <= MaxQueueSize
+WorkersHitsInRangeInvariant == (nWorkersHits >= 0) /\ (nWorkersHits <= N_WORKERS_TO_WAIT)
+ProperFinalWorkersHitsValue == <>(nWorkersHits = 0 \/ nWorkersHits = 1 \/ nWorkersHits = 2)
 MutualExclusionProd == []~(pc["prod1"] = "put" /\ pc["prod2"] = "put")
 MutualExclusionCons == []~(pc["cons1"] = "take" /\ pc["cons2"] = "take")
 

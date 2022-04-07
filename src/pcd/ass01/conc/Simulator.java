@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Random;
 
 import pcd.ass01.conc.patterns.SynchronizedPipelineMonitor;
+import pcd.ass01.utils.AbstractSimulator;
 import pcd.ass01.utils.Body;
 import pcd.ass01.utils.Boundary;
 import pcd.ass01.utils.P2d;
@@ -14,8 +15,7 @@ import pcd.ass01.utils.SimulationView;
 import pcd.ass01.utils.V2d;
 import pcd.ass01.view.Controller;
 
-public class Simulator {
-	private final static double VC_PERCENTAGE = (9.0/10.0);
+public class Simulator extends AbstractSimulator{
 	private final static int UPDATE_FREQUENCY = 2;
 	
 	private Optional<Controller> controller;
@@ -24,76 +24,35 @@ public class Simulator {
 
 	private SynchronizedPipelineMonitor<Body> monitor;
 	
+	private final MultithreadingManager mtManager;
+
+	
 	//private ArrayList<Body> bodies;
-	private ArrayList<Body> bodies;
-	
-	private ArrayList<Body> initialBodies;
 
-	/* boundary of the field */
-	private Boundary bounds;
-
-	/* virtual time */
-	private double vt;
-
-	/* virtual time step */
-	double dt;
-	
-	/* number of producers in producers-consumers pattern*/
-	private final int nrVelCalculators;
-	
-	private final int nrPosCalculators;
-	
-	/* number of total process available*/
-	private final int nrProcessors;
-	
-	/* size of the sublists given the number of producers */
-	private final int deltaSplitList;
-	
-	/* number of elements to assign to the last producer (equals to nrProcessors % size total list)*/
-	private final int restSplitList;
-	
-	/*Lists of producers and consumers*/
-	private ArrayList<VelCalculator> velCalculators;
-	private ArrayList<PosCalculator> posCalculators;
-
-	public Simulator(final Optional<SimulationView> viewer, final Optional<Controller> c) {
-		this.controller = c;
-		this.viewer = viewer;
+	public Simulator(final SimulationView viewer, final Controller controller, ArrayList<Body> bodies,  Boundary bounds) {
+		super(bodies, bounds);
+		this.controller = Optional.of(controller);
+		this.viewer = Optional.of(viewer);
 		
-		/* init virtual time */
-		this.dt = 0.001;
-		this.vt = 0;
-			
-		/* initializing boundary and bodies */
-		//testBodySet1_two_bodies();
-		 //testBodySet2_three_bodies();
-		// testBodySet3_some_bodies();
-		 testBodySet4_many_bodies();
-		 
-		 this.initialBodies = new ArrayList<>();
-		 Iterator<Body> iterator = bodies.iterator();
-	        while(iterator.hasNext()){
-	            initialBodies.add((Body)iterator.next().clone());
-	        }
+		this.initialBodies = new ArrayList<>();
+		super.copyAndReplace(super.bodies, this.initialBodies);
 		
-		this.nrProcessors = Runtime.getRuntime().availableProcessors()+1;
-		this.nrVelCalculators =  nrProcessors >= bodies.size() ? 
-					   bodies.size() : 
-					   (int)(VC_PERCENTAGE * (nrProcessors));
-		
-		this.nrPosCalculators = this.nrProcessors - this.nrVelCalculators;
-		
-		this.deltaSplitList = (int) Math.ceil((float) (bodies.size() / nrVelCalculators));
-		this.restSplitList = bodies.size() % nrVelCalculators;
-		this.monitor = new SynchronizedPipelineMonitor<>(nrVelCalculators + 1, nrPosCalculators, bodies);
-		this.posCalculators = new ArrayList<>();
-		this.velCalculators = new ArrayList<>();
-		
-		//initialize consumers: they will remain alive the whole time
-		this.initialize_producers();	
-		this.initialize_position_calculators();
+        this.mtManager = new MultithreadingManager(super.bodies, super.bounds, super.dt);
+        this.monitor = mtManager.getMonitor();
 	}
 	
+	public Simulator(final ArrayList<Body> bodies, Boundary bounds) {
+		super(bodies, bounds);
+		this.controller = Optional.empty();
+		this.viewer = Optional.empty();
+		 
+		super.copyAndReplace(super.bodies, this.initialBodies);
+		
+        this.mtManager = new MultithreadingManager(super.bodies, super.bounds, super.dt);
+        this.monitor = mtManager.getMonitor(); 
+	}
+	
+	@Override
 	public void execute(final long nSteps) {
 
 		if(this.controller.isPresent()) {
@@ -104,14 +63,11 @@ public class Simulator {
 			}
 		}
 		
-		long iter = 0;
-		
 		/* simulation loop */
-		while (iter < nSteps) {
+		while (super.iter < nSteps) {
 			if(this.controller.isPresent()) {
 			    if(this.controller.get().m.evaluateReset()) {
-			    	this.reset();
-			    	iter = 0;
+			    	super.reset();
 			    	try {
 						this.controller.get().m.waitStart();
 					} catch (InterruptedException e) {
@@ -129,7 +85,7 @@ public class Simulator {
 			
 		    /* update virtual time */
 			vt = vt + dt;
-			iter++;
+			super.iter++;
 						
 			/* display current stage */
 			if(viewer.isPresent() && (iter % UPDATE_FREQUENCY == 0)) viewer.get().updateView(bodies, vt, iter, bounds);
@@ -138,43 +94,14 @@ public class Simulator {
 		if(viewer.isPresent()) {
 			viewer.get().updateState("Terminated");
 		}
-		this.reset();
+		super.reset();
 		this.execute(nSteps);
 	}
 	
 	public ArrayList<Body> getBodies() {
-		return this.bodies;
+		return super.bodies;
 	}
-	
-	private void reset() {
-		 this.bodies.clear();
-		 Iterator<Body> iterator = initialBodies.iterator();
-	        while(iterator.hasNext()){
-	            bodies.add((Body)iterator.next().clone());
-	        }
-		vt = 0;
-	}
-	
-	private void initialize_position_calculators() {
-		for(int i = 0; i < this.nrPosCalculators; i++) {
-		    PosCalculator pc = new PosCalculator(monitor, dt, bounds);
-			pc.start();
-			this.posCalculators.add(pc);
-		}
-	}
-	
-	private void initialize_producers() {
-		int fromIndex, toIndex;
-        
-		for(int i = 0; i<nrVelCalculators; i++) {
-			fromIndex = i * deltaSplitList;
-			toIndex = (i + 1) * deltaSplitList + (i == nrVelCalculators-1 ? restSplitList : 0);
-			VelCalculator vc = new VelCalculator(this.monitor, fromIndex, toIndex, this.dt);
-			vc.start();
-			this.velCalculators.add(vc);
-		}
-	}
-	
+	/*
 	private void testBodySet1_two_bodies() {
 		bounds = new Boundary(-4.0, -4.0, 4.0, 4.0);
 		bodies = new ArrayList<Body>();
@@ -215,4 +142,5 @@ public class Simulator {
 			bodies.add(b);
 		}
 	}
-}
+
+*/}

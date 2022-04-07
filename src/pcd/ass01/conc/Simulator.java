@@ -15,6 +15,8 @@ import pcd.ass01.utils.V2d;
 import pcd.ass01.view.Controller;
 
 public class Simulator {
+	private final static double VC_PERCENTAGE = (9.0/10.0);
+	private final static int UPDATE_FREQUENCY = 2;
 	
 	private Optional<Controller> controller;
 	
@@ -77,13 +79,13 @@ public class Simulator {
 		this.nrProcessors = Runtime.getRuntime().availableProcessors()+1;
 		this.nrVelCalculators =  nrProcessors >= bodies.size() ? 
 					   bodies.size() : 
-					   (int)((6.0/10.0)*(nrProcessors)); //TODO remove magic number
+					   (int)(VC_PERCENTAGE * (nrProcessors));
 		
 		this.nrPosCalculators = this.nrProcessors - this.nrVelCalculators;
 		
 		this.deltaSplitList = (int) Math.ceil((float) (bodies.size() / nrVelCalculators));
 		this.restSplitList = bodies.size() % nrVelCalculators;
-		this.monitor = new SynchronizedPipelineMonitor<>(nrVelCalculators+1, nrPosCalculators, bodies);
+		this.monitor = new SynchronizedPipelineMonitor<>(nrVelCalculators + 1, nrPosCalculators, bodies);
 		this.posCalculators = new ArrayList<>();
 		this.velCalculators = new ArrayList<>();
 		
@@ -98,7 +100,6 @@ public class Simulator {
 			try {
 				this.controller.get().m.waitStart();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -114,7 +115,6 @@ public class Simulator {
 			    	try {
 						this.controller.get().m.waitStart();
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 			    }
@@ -130,10 +130,9 @@ public class Simulator {
 		    /* update virtual time */
 			vt = vt + dt;
 			iter++;
-			
-			
+						
 			/* display current stage */
-			if(viewer.isPresent()) viewer.get().updateView(bodies, vt, iter, bounds);
+			if(viewer.isPresent() && (iter % UPDATE_FREQUENCY == 0)) viewer.get().updateView(bodies, vt, iter, bounds);
 		}
 		/* change of GUI and button states when simulation ends without user interaction on the GUI */
 		if(viewer.isPresent()) {

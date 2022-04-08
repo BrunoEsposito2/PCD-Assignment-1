@@ -7,8 +7,6 @@ import pcd.ass01.utils.BodyGenerator;
 import pcd.ass01.utils.Boundary;
 /**
  * Bodies simulation - legacy code: sequential, unstructured
- * 
- * @author aricci
  */
 public class SequentialBodySimulationMain{
 

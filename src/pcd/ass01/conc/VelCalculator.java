@@ -3,7 +3,6 @@ package pcd.ass01.conc;
 import java.util.List;
 
 import pcd.ass01.conc.patterns.AbstractWPWithBarrier;
-import pcd.ass01.conc.patterns.AbstractWorkerProducer;
 import pcd.ass01.conc.patterns.SynchronizedPipelineMonitor;
 import pcd.ass01.utils.Body;
 import pcd.ass01.utils.NotImplementedException;

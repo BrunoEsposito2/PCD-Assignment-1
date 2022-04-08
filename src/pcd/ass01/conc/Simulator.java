@@ -85,9 +85,9 @@ public class Simulator extends AbstractSimulator{
 		/* change of GUI and button states when simulation ends without user interaction on the GUI */
 		if(viewer.isPresent()) {
 			viewer.get().updateState("Terminated");
+			super.reset();
+			this.execute(nSteps);
 		}
-		super.reset();
-		this.execute(nSteps);
 	}
 	
 	public ArrayList<Body> getBodies() {

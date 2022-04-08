@@ -1,15 +1,11 @@
 package pcd.ass01.conc;
 
 import java.util.ArrayList;
-import java.util.Optional;
-import java.util.Random;
 
 import pcd.ass01.utils.Body;
 import pcd.ass01.utils.BodyGenerator;
 import pcd.ass01.utils.Boundary;
-import pcd.ass01.utils.P2d;
 import pcd.ass01.utils.SimulationView;
-import pcd.ass01.utils.V2d;
 import pcd.ass01.view.Controller;
 
 /**
@@ -17,7 +13,6 @@ import pcd.ass01.view.Controller;
  * 
  */
 public class ConcurrentBodySimulation {
-	
 	
 	public static void main(String[] args) throws InterruptedException {
 		
@@ -30,7 +25,7 @@ public class ConcurrentBodySimulation {
 		Controller controller = new Controller();
 
     	Simulator sim = new Simulator(viewer, controller, bodies, bounds);
-                
+
         viewer.addListener(controller);
         viewer.display();
         sim.execute(1000);

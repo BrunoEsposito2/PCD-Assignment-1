@@ -19,9 +19,6 @@ import pcd.ass01.utils.Boundary;
 
 public class VisualizerFrame extends JFrame implements ActionListener {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private JButton startButton;
 	private JButton stopButton;

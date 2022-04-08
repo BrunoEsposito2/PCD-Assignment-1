@@ -15,9 +15,6 @@ import pcd.ass01.utils.P2d;
 
 public class VisualizerPanel extends JPanel implements KeyListener {
     
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private ArrayList<Body> bodies;
 	private Boundary bounds;
@@ -41,7 +38,7 @@ public class VisualizerPanel extends JPanel implements KeyListener {
 
     public void paint(Graphics g){    		    		
 		if (bodies != null) {
-    		Graphics2D g2 = (Graphics2D) g;
+			Graphics2D g2 = (Graphics2D) g;
     		
     		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
     		          RenderingHints.VALUE_ANTIALIAS_ON);

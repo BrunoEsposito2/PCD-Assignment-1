@@ -2,6 +2,7 @@ package pcd.ass01.conc;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import pcd.ass01.conc.patterns.SynchronizedPipelineMonitor;
@@ -12,6 +13,7 @@ import pcd.ass01.utils.SimulationView;
 import pcd.ass01.view.Controller;
 
 public class Simulator extends AbstractSimulator{
+	
 	private final static int UPDATE_FREQUENCY = 2;
 	
 	private Optional<Controller> controller;
@@ -70,7 +72,9 @@ public class Simulator extends AbstractSimulator{
 			}
 
 			try {
-				monitor.startAndWaitWorkers(Collections.unmodifiableList(this.bodies));
+				ArrayList<Body> readOnlyList = new ArrayList<>();
+				super.copyAndReplace(super.bodies, readOnlyList);
+				monitor.startAndWaitWorkers(readOnlyList);
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
@@ -78,7 +82,7 @@ public class Simulator extends AbstractSimulator{
 		    /* update virtual time */
 			vt = vt + dt;
 			super.iter++;
-						
+			
 			/* display current stage */
 			if(viewer.isPresent() && (iter % UPDATE_FREQUENCY == 0)) viewer.get().updateView(bodies, vt, iter, bounds);
 		}
@@ -91,6 +95,7 @@ public class Simulator extends AbstractSimulator{
 	}
 	
 	public ArrayList<Body> getBodies() {
+		
 		return super.bodies;
 	}
 }

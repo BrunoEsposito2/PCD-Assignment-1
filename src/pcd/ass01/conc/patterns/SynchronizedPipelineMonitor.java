@@ -1,5 +1,6 @@
 package pcd.ass01.conc.patterns;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +15,7 @@ public class SynchronizedPipelineMonitor<Item> implements IMasterWorkers<Item>, 
 
 	private Lock mutex;
 	
-	private List<Item> readOnlyList;
+	private ArrayList<Item> readOnlyList;
 	private List<Item> bufferMasterWorkers;
 	private final int nWorkers;
 	private int nWorkersHits;
@@ -38,7 +39,7 @@ public class SynchronizedPipelineMonitor<Item> implements IMasterWorkers<Item>, 
 		this.nWorkers = nWorkers;
 		this.nWorkersHits = 0;
 		this.bufferMasterWorkers = items;
-		this.readOnlyList = Collections.unmodifiableList(items);
+		this.readOnlyList = new ArrayList<>();
 		this.isAllowedToWork = mutex.newCondition();
 		this.isAllowedToStart = mutex.newCondition();
 		
@@ -76,11 +77,11 @@ public class SynchronizedPipelineMonitor<Item> implements IMasterWorkers<Item>, 
 	}
 
 	@Override
-	public void startAndWaitWorkers(List<Item> rol) throws InterruptedException {
+	public void startAndWaitWorkers(ArrayList<Item> rol) throws InterruptedException {
 		try {
 			mutex.lock();
-			
-			this.readOnlyList = rol;
+			this.readOnlyList.clear();
+			this.readOnlyList.addAll(rol);
 			
 			this.synchMasterWorker();
 			
@@ -89,7 +90,7 @@ public class SynchronizedPipelineMonitor<Item> implements IMasterWorkers<Item>, 
 			
 			//=======================================
 			//if master reach this point the whole array of bodies is processed and all thread 
-			//have been blocked the barrier, so the counter must be reset for the next iteration
+			//have been blocked in the barrier, so the counter must be reset for the next iteration
 			this.nReturned = 0;
 			this.nConsHits = 0;
 			this.notAllInBarrier.signalAll();
@@ -144,6 +145,7 @@ public class SynchronizedPipelineMonitor<Item> implements IMasterWorkers<Item>, 
 			Optional<Item> ret;
 			ret = Optional.of(bufferProdCons[out]);
 			out = (out + 1) % bufferProdCons.length;
+			
 			if (wasFull()) {
 				notFull.signal();
 			}

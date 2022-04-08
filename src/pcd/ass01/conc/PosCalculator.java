@@ -7,7 +7,7 @@ import pcd.ass01.utils.Boundary;
 
 public class PosCalculator extends AbstractSCWithMaster<Body, SynchronizedPipelineMonitor<Body>> {
 
-	 /* virtual time step */
+	/* virtual time step */
     private final double dt;
 
     /* boundary of the field */
@@ -24,7 +24,7 @@ public class PosCalculator extends AbstractSCWithMaster<Body, SynchronizedPipeli
 		
 	    /* compute bodies new pos */
 	    item.updatePos(dt);
-            
+       
         /* check collisions with boundaries */
         item.checkAndSolveBoundaryCollision(bounds);
 	}

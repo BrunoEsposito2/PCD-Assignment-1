@@ -146,7 +146,7 @@ public class Body {
         P2d newPos = new P2d(this.pos.getX(), this.pos.getY());
         V2d newVel = new V2d(this.vel.getX(), this.vel.getY());
         
-		return new Body(this.id, newPos, newVel, this.mass);
+		return new Body(this.getId(), newPos, newVel, this.getMass());
 		
     	
     }

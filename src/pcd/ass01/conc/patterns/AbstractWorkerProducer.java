@@ -16,6 +16,7 @@ public abstract class AbstractWorkerProducer<Item, M extends IProducerConsumer<I
 	public AbstractWorkerProducer(M monitorMW) {
 		super(monitorMW);
 		this.args = new Object[0];
+		this.toProduce = new ArrayList<>();
 	}
 	
 	public void run(){
@@ -49,7 +50,10 @@ public abstract class AbstractWorkerProducer<Item, M extends IProducerConsumer<I
 	}
 	
 	public void assignTask(List<Item> workerSublist) {
-		this.toProduce = workerSublist;
+		this.toProduce.clear();
+		for(Item elem: workerSublist) {
+			this.toProduce.add(elem);
+		}
 	}
 	
 	protected abstract void manageResources();

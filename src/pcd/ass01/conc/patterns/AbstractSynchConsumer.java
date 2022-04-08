@@ -5,6 +5,7 @@ import java.util.Optional;
 public abstract class AbstractSynchConsumer<Item, M extends IProducerConsumer<Item> & IBarrier> 
 					  extends AbstractConsumer<Item, M>{
 
+	protected int iter = 0;
 	public AbstractSynchConsumer(M monitor) {
 		super(monitor);
 	}

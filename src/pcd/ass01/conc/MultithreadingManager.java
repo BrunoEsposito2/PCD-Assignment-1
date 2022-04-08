@@ -34,7 +34,7 @@ public class MultithreadingManager {
 	private ArrayList<VelCalculator> velCalculators;
 	private ArrayList<PosCalculator> posCalculators;
 	
-	private final static double VC_PERCENTAGE = (9.0/10.0);
+	private final static double VC_PERCENTAGE = (7.0/10.0);
 
 	public MultithreadingManager(final ArrayList<Body> bodies, final Boundary bounds, final double dt) {
 		

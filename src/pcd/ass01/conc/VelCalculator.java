@@ -32,7 +32,7 @@ public class VelCalculator extends AbstractWPWithBarrier<Body, SynchronizedPipel
 		Body item = (Body) args[0];
 		 /* compute total force on bodies */
         V2d totalForce = computeTotalForceOnBody(item);
-
+        
         /* compute instant acceleration */
         V2d acc = new V2d(totalForce).scalarMul(1.0 / item.getMass());
 
@@ -50,7 +50,7 @@ public class VelCalculator extends AbstractWPWithBarrier<Body, SynchronizedPipel
 	
 	 private V2d computeTotalForceOnBody(Body b) {
 	        V2d totalForce = new V2d(0, 0);
-
+	     
 	        /* compute total repulsive force */
 	        for (int j = 0; j < this.bodiesView.size(); j++) {
 	        	Body otherBody = this.bodiesView.get(j);
@@ -63,10 +63,8 @@ public class VelCalculator extends AbstractWPWithBarrier<Body, SynchronizedPipel
 	                }
 	            }
 	        }
-
 	        /* add friction force */
 	        totalForce.sum(b.getCurrentFrictionForce());
-
 	        return totalForce;
 	 }
 

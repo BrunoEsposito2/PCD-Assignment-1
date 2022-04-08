@@ -20,7 +20,7 @@ public class SequentialSimulator extends AbstractSimulator {
 
 				/* compute total force on bodies */
 				V2d totalForce = computeTotalForceOnBody(b);
-
+				
 				/* compute instant acceleration */
 				V2d acc = new V2d(totalForce).scalarMul(1.0 / b.getMass());
 
@@ -31,6 +31,7 @@ public class SequentialSimulator extends AbstractSimulator {
 			/* compute bodies new pos */
 			for (Body b : bodies) {
 				b.updatePos(dt);
+				
 			}
 
 			/* check collisions with boundaries */
@@ -66,7 +67,7 @@ public class SequentialSimulator extends AbstractSimulator {
 
 		/* add friction force */
 		totalForce.sum(b.getCurrentFrictionForce());
-
+		
 		return totalForce;
 	}
 }

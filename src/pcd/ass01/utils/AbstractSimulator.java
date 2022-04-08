@@ -20,7 +20,7 @@ public abstract class AbstractSimulator {
 	
 	protected long iter;
 	
-	public AbstractSimulator(ArrayList<Body> bodies, Boundary bounds){
+	public AbstractSimulator(final ArrayList<Body> bodies, final Boundary bounds){
 		/* init virtual time */
 		this.dt = 0.001;
 		this.vt = 0;
@@ -33,7 +33,7 @@ public abstract class AbstractSimulator {
 		this.copyAndReplace(this.bodies, this.initialBodies);
 	}
 	
-	protected void copyAndReplace(ArrayList<Body> source, ArrayList<Body> destination) {
+	protected void copyAndReplace(final ArrayList<Body> source, final ArrayList<Body> destination) {
 		destination.clear();
 		Iterator<Body> iterator = source.iterator();
         while(iterator.hasNext()){
@@ -42,7 +42,7 @@ public abstract class AbstractSimulator {
 	}
 	
 	protected void reset() {
-		this.copyAndReplace(initialBodies, this.bodies);
+		this.copyAndReplace(this.initialBodies, this.bodies);
 		this.vt = 0;
 		this.iter = 0;
 	}

@@ -9,8 +9,6 @@ import pcd.ass01.utils.Boundary;
 public class MultithreadingManager {
 	
 	private SynchronizedPipelineMonitor<Body> monitor;
-	
-	
 
 	/* boundary of the field */
 	private Boundary bounds;
@@ -38,12 +36,12 @@ public class MultithreadingManager {
 	
 	private final static double VC_PERCENTAGE = (9.0/10.0);
 
-	public MultithreadingManager(ArrayList<Body> bodies, Boundary bounds, double dt) {
+	public MultithreadingManager(final ArrayList<Body> bodies, final Boundary bounds, final double dt) {
 		
 		this.bounds = bounds;
 		this.dt = dt;
 	
-		this.nrProcessors = Runtime.getRuntime().availableProcessors()+1;
+		this.nrProcessors = Runtime.getRuntime().availableProcessors() + 1;
 		this.nrVelCalculators =  nrProcessors >= bodies.size() ? 
 					   bodies.size() : 
 					   (int)(VC_PERCENTAGE * (nrProcessors));

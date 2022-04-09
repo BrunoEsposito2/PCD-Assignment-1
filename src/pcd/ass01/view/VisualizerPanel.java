@@ -6,6 +6,7 @@ import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 
 import javax.swing.JPanel;
 
@@ -55,14 +56,19 @@ public class VisualizerPanel extends JPanel implements KeyListener {
     		
 			g2.drawRect(x0, y0 - ht, wd, ht);
 			
-    		bodies.forEach( b -> {
-    			P2d p = b.getPos();
-		        int radius = (int) (10*scale);
-		        if (radius < 1) {
-		        	radius = 1;
-		        }
-		        g2.drawOval(getXcoord(p.getX()),getYcoord(p.getY()), radius, radius); 
-		    });		    
+			try {
+				bodies.forEach( b -> {
+	    			P2d p = b.getPos();
+			        int radius = (int) (10*scale);
+			        if (radius < 1) {
+			        	radius = 1;
+			        }
+			        g2.drawOval(getXcoord(p.getX()),getYcoord(p.getY()), radius, radius); 
+			    });	
+			} catch (ConcurrentModificationException concEx) {
+				// do nothing
+			}
+  	    
     		String time = String.format("%.2f", vt);
     		g2.drawString("Bodies: " + bodies.size() + " - vt: " + time + " - nIter: " + nIter + " (UP for zoom in, DOWN for zoom out)", 2, 20);
 		}

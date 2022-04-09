@@ -5,7 +5,6 @@ import java.util.Random;
 import java.math.*;
 
 public class BodyGenerator {
-	private final static int digits = 4;
 	
 	public ArrayList<Body> generateBodies(int nBodies, Boundary bounds) {
 		ArrayList<Body> bodies = new ArrayList<>(); 

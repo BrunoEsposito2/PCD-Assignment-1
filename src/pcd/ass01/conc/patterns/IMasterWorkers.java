@@ -1,7 +1,6 @@
 package pcd.ass01.conc.patterns;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 

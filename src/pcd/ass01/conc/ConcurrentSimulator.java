@@ -12,19 +12,24 @@ import pcd.ass01.utils.Boundary;
 import pcd.ass01.utils.SimulationView;
 import pcd.ass01.view.Controller;
 
-public class Simulator extends AbstractSimulator{
+public class ConcurrentSimulator extends AbstractSimulator{
 	
+	/*specify how many iterations must pass before update GUI*/
 	private final static int UPDATE_FREQUENCY = 2;
 	
+	/*the optional controller field*/
 	private Optional<Controller> controller;
 	
+	/*the optional viewer*/
 	private Optional<SimulationView> viewer;
 
+	/*the singleton monitor who regulate multithreading*/
 	private SynchronizedPipelineMonitor<Body> monitor;
 	
+	/*a singleton who manage the threads initialization (and other multithreading configuration)*/
 	private final MultithreadingManager mtManager;
 
-	public Simulator(final SimulationView viewer, final Controller controller, ArrayList<Body> bodies,  Boundary bounds) {
+	public ConcurrentSimulator(final SimulationView viewer, final Controller controller, ArrayList<Body> bodies,  Boundary bounds) {
 		super(bodies, bounds);
 		this.controller = Optional.of(controller);
 		this.viewer = Optional.of(viewer);
@@ -36,7 +41,7 @@ public class Simulator extends AbstractSimulator{
         this.monitor = mtManager.getMonitor();
 	}
 	
-	public Simulator(final ArrayList<Body> bodies, Boundary bounds) {
+	public ConcurrentSimulator(final ArrayList<Body> bodies, Boundary bounds) {
 		super(bodies, bounds);
 		this.controller = Optional.empty();
 		this.viewer = Optional.empty();
@@ -49,7 +54,7 @@ public class Simulator extends AbstractSimulator{
 	
 	@Override
 	public void execute(final long nSteps) {
-
+		/* if there's a controller then wait start */
 		if(this.controller.isPresent()) {
 			try {
 				this.controller.get().m.waitStart();
@@ -72,8 +77,11 @@ public class Simulator extends AbstractSimulator{
 			}
 
 			try {
+				/* update readOnlyList with iter-1 result */
 				ArrayList<Body> readOnlyList = new ArrayList<>();
 				super.copyAndReplace(super.bodies, readOnlyList);
+				
+				/* begin synchronized pipeline and wait for iter results */
 				monitor.startAndWaitWorkers(readOnlyList);
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();

@@ -8,13 +8,13 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import pcd.ass01.conc.Simulator;
+import pcd.ass01.conc.ConcurrentSimulator;
 import pcd.ass01.seq.SequentialSimulator;
 import pcd.ass01.utils.*;
 
 public class CalculationsTest {
 	
-	private Simulator concurrentSimulator;
+	private ConcurrentSimulator concurrentSimulator;
 	private SequentialSimulator sequentialSimulator;
 	private int nBodies;
     
@@ -24,7 +24,7 @@ public class CalculationsTest {
 		Boundary bounds = new Boundary(-6.0, -6.0, 6.0, 6.0);
 		nBodies = 100;
 		ArrayList<Body> bodySet = bg.generateBodies(nBodies, bounds);
-		this.concurrentSimulator = new Simulator(bodySet, bounds);
+		this.concurrentSimulator = new ConcurrentSimulator(bodySet, bounds);
 		this.sequentialSimulator = new SequentialSimulator(bodySet, bounds);
 	}
 	
@@ -37,7 +37,7 @@ public class CalculationsTest {
 	}
 	
 	// check if concurrent and sequential calculations are equals
-	private void checkCalculations(final Simulator concSimulator, final SequentialSimulator seqSimulator) {
+	private void checkCalculations(final ConcurrentSimulator concSimulator, final SequentialSimulator seqSimulator) {
 		if(concSimulator.getBodies().size() == seqSimulator.getBodies().size()) {
 			concSimulator.getBodies().stream().sorted((b1,b2) -> Integer.compare(b1.getId(), b2.getId())).collect(Collectors.toList());
 			seqSimulator.getBodies().stream().sorted((b1,b2) -> Integer.compare(b1.getId(), b2.getId())).collect(Collectors.toList());

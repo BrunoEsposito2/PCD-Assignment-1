@@ -24,10 +24,10 @@ public class ConcurrentBodySimulation {
 		
 		Controller controller = new Controller();
 
-    	Simulator sim = new Simulator(viewer, controller, bodies, bounds);
+    	ConcurrentSimulator sim = new ConcurrentSimulator(viewer, controller, bodies, bounds);
 
         viewer.addListener(controller);
         viewer.display();
-        sim.execute(1000);
+        sim.execute(10000);
     }
 }
